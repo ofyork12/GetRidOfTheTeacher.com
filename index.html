@@ -56,6 +56,12 @@
       margin-bottom: 30px;
       justify-content: center;
     }
+    .lang-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
     .controls button {
       padding: 10px 20px;
       border: 2px solid #fff;
@@ -69,6 +75,11 @@
     .controls button.active {
       background: #fff;
       color: #000;
+    }
+    .controls button.dual {
+      font-size: 13px;
+      padding: 6px 14px;
+      opacity: 0.85;
     }
 
     .circle {
@@ -303,14 +314,33 @@
 <body>
 
   <div class="controls" role="group" aria-label="Language selector">
-    <button data-lang="en" class="active">English</button>
-    <button data-lang="zh">中文</button>
-    <button data-lang="es">Español</button>
-    <button data-lang="fr">Français</button>
-    <button data-lang="hi">हिन्दी</button>
-    <button data-lang="ko">한국어</button>
-    <button data-lang="vi">Tiếng Việt</button>
-    <button data-echo="en">Add English</button>
+    <div class="lang-group">
+      <button data-lang="en" class="active">English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="vi">Tiếng Việt</button>
+      <button class="dual" data-dual="vi">Tiếng Việt + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="zh">中文</button>
+      <button class="dual" data-dual="zh">中文 + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="ko">한국어</button>
+      <button class="dual" data-dual="ko">한국어 + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="es">Español</button>
+      <button class="dual" data-dual="es">Español + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="fr">Français</button>
+      <button class="dual" data-dual="fr">Français + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="hi">हिन्दी</button>
+      <button class="dual" data-dual="hi">हिन्दी + English</button>
+    </div>
   </div>
 
   <section class="set">
@@ -450,7 +480,7 @@ const LANGUAGE_HINTS = {
 let currentLang = "en";
 let preferredVoice = null;
 let englishVoice = null;
-let echoEnglish = false;
+const dualStates = {};
 let lastSpokenCount = 0;
 
 function pickVoice(langCode) {
@@ -498,7 +528,7 @@ function speakNumber(count) {
   if (preferredVoice) utterance.voice = preferredVoice;
   requestAnimationFrame(() => {
     window.speechSynthesis.speak(utterance);
-    if (echoEnglish && currentLang !== "en" && englishVoice) {
+    if (dualStates[currentLang] && currentLang !== "en" && englishVoice) {
       const englishWord = NUMBER_WORDS.en[count];
       const follow = new SpeechSynthesisUtterance(englishWord);
       follow.rate = 1.15;
@@ -541,7 +571,7 @@ single.addEventListener("click", function() {
 
 // Language switching
 const buttons = Array.from(document.querySelectorAll(".controls button[data-lang]"));
-const echoButton = document.querySelector(".controls button[data-echo]");
+const dualButtons = Array.from(document.querySelectorAll(".controls button[data-dual]"));
 
 buttons.forEach(btn => {
   btn.addEventListener("click", () => {
