@@ -13,102 +13,78 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 60px;
-      font-family: sans-serif;
+      gap: 100px;                 /* space between #1 and the #2 pair */
     }
     .circle {
+      width: 240px;
+      height: 240px;
       border-radius: 50%;
+      background: #111;
+      border: 10px solid #333;
       cursor: pointer;
       transition: all 0.5s ease;
-      box-shadow: 0 0 40px rgba(255,255,255,0.2);
+      box-shadow: 0 0 50px rgba(255,255,255,0.2);
     }
-    /* Big top circle */
-    #mainCircle {
-      width: 420px;
-      height: 420px;
-      background: transparent;
-      border: 12px solid #fff;
-    }
-    #mainCircle.red {
-      background: #ff0000;
-      border-color: #ff0000;
-      box-shadow: 0 0 120px #ff0000;
-    }
-    /* Bottom two smaller circles */
-    .small {
-      width: 180px;
-      height: 180px;
-      background: #111;
-      border: 8px solid #333;
-    }
-    .small.red {
-      background: #ff0000;
-      border-color: #ff0000;
-      box-shadow: 0 0 80px #ff0000;
-    }
-    .small.orange {
-      background: #ff8800;
-      border-color: #ff8800;
-      box-shadow: 0 0 80px #ff8800;
-    }
-    .container {
+    .circle.red    { background: #ff0000; border-color: #ff0000; box-shadow: 0 0 100px #ff0000; }
+    .circle.orange { background: #ff6200; border-color: #ff6200; box-shadow: 0 0 100px #ff6200; }
+
+    .pair {
       display: flex;
-      gap: 80px;
+      gap: -70px;                 /* makes the two bottom circles touch perfectly */
     }
   </style>
 </head>
 <body>
 
-  <!-- Big top circle -->
-  <div class="circle" id="mainCircle"></div>
+  <!-- #1: top circle (red/black only) -->
+  <div class="circle" id="one"></div>
 
-  <!-- Bottom two circles -->
-  <div class="container">
-    <div class="circle small" id="dot1"></div>
-    <div class="circle small" id="dot2"></div>
+  <!-- #2: bottom two touching circles -->
+  <div class="pair">
+    <div class="circle" id="twoA"></div>
+    <div class="circle" id="twoB"></div>
   </div>
 
-  <script>
-    const main = document.getElementById("mainCircle");
-    const dot1 = document.getElementById("dot1");
-    const dot2 = document.getElementById("dot2");
+<script>
+  // Top circle (#1) — simple red/black toggle
+  const one = document.getElementById("one");
+  one.addEventListener("click", () => {
+    one.classList.toggle("red");
+  });
 
-    // Top big circle — simple toggle
-    main.addEventListener("click", () => {
-      main.classList.toggle("red");
-    });
+  // Bottom pair (#2) — red/orange logic
+  const twoA = document.getElementById("twoA");
+  const twoB = document.getElementById("twoB");
 
-    // Bottom dots logic
-    function updateDots() {
-      const d1 = dot1.classList.contains("red") || dot1.classList.contains("orange");
-      const d2 = dot2.classList.contains("red") || dot2.classList.contains("orange");
-      const count = (d1 ? 1 : 0) + (d2 ? 1 : 0);
+  function updatePair() {
+    const aOn = twoA.classList.contains("red") || twoA.classList.contains("orange");
+    const bOn = twoB.classList.contains("red") || twoB.classList.contains("orange");
+    const count = (aOn ? 1 : 0) + (bOn ? 1 : 0);
 
-      // Remove all color classes first
-      dot1.className = "circle small";
-      dot2.className = "circle small";
+    twoA.classList.remove("red", "orange");
+    twoB.classList.remove("red", "orange");
 
-      if (count === 1) {
-        if (d1) dot1.classList.add("red");
-        if (d2) dot2.classList.add("red");
-      } else if (count === 2) {
-        dot1.classList.add("orange");
-        dot2.classList.add("orange");
-      }
+    if (count === 1) {
+      if (aOn) twoA.classList.add("red");
+      if (bOn) twoB.classList.add("red");
+    } else if (count === 2) {
+      twoA.classList.add("orange");
+      twoB.classList.add("orange");
     }
+  }
 
-    dot1.addEventListener("click", () => {
-      dot1.classList.toggle("red");
-      dot1.classList.toggle("orange");
-      updateDots();
-    });
+  twoA.addEventListener("click", () => {
+    twoA.classList.toggle("red");
+    twoA.classList.toggle("orange");
+    updatePair();
+  });
 
-    dot2.addEventListener("click", () => {
-      dot2.classList.toggle("red");
-      dot2.classList.toggle("orange");
-      updateDots();
-    });
-  </script>
+  twoB.addEventListener("click", () => {
+    twoB.classList.toggle("red");
+    twoB.classList.toggle("orange");
+    updatePair();
+  });
+</script>
 
 </body>
 </html>
