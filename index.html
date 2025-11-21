@@ -32,7 +32,7 @@
 </head>
 <body>
 
-  <!-- Top circle (#1) -->
+  <!-- Top circle (#1) — perfect red/black toggle -->
   <div class="circle" id="one"></div>
 
   <!-- Bottom two touching circles (#2) -->
@@ -43,52 +43,49 @@
 
 <script>
   // Top circle — simple toggle
-  document.getElementById("one").addEventListener("click", function() {
-    this.classList.toggle("red");
+  document.getElementById("one").addEventListener("click", e => {
+    e.target.classList.toggle("red");
   });
 
-  // Bottom pair — correct forward + backward logic
   const a = document.getElementById("a");
   const b = document.getElementById("b");
 
-  a.addEventListener("click", toggle);
-  b.addEventListener("click", toggle);
+  function updateBottom() {
+    const aRed = a.classList.contains("red");
+    const aOrange = a.classList.contains("orange");
+    const bRed = b.classList.contains("red");
+    const bOrange = b.classList.contains("orange");
 
-  function toggle() {
-    // Count how many are currently active (red or orange)
-    const aActive = a.classList.contains("red") || a.classList.contains("orange");
-    const bActive = b.classList.contains("red") || b.classList.contains("orange");
-    const total = (aActive ? 1 : 0) + (bActive ? 1 : 0);
+    const activeCount = (aRed || aOrange ? 1 : 0) + (bRed || bOrange ? 1 : 0);
 
-    // Remove all colors from both
+    // Clear all colors first
     a.classList.remove("red", "orange");
     b.classList.remove("red", "orange");
 
-    if (this === a) {
-      if (aActive && total === 1) {
-        // Clicking the only active one → turn it off (both black)
-        return;
-      }
-      if (total === 1 && bActive) {
-        // Clicking the inactive one when one is active → both orange
-        a.classList.add("orange");
-        b.classList.add("orange");
-      } else if (total === 2) {
-        // Clicking when both orange → turn this one off, leave the other red
-        a.classList.add("red");
-        if (this === a) b.classList.add("red");
-      } else {
-        // Was off → turn this one red
-        a.classList.add("red");
-      }
+    if (activeCount === 0) return;                    // both black
+    if (activeCount === 1) {
+      if (aRed || aOrange) a.classList.add("red");
+      if (bRed || bOrange) b.classList.add("red");
     }
+    if (activeCount === 2) {
+      a.classList.add("orange");
+      b.classList.add("orange");
+    }
+  }
 
-    if (this === b) {
-      if (bActive && total === 1) return;
-      if (total === 1 && aActive) {
-        a.classList.add("orange");
-        b.classList.add("orange");
-      } else if (total === 2) {
-        b.classList.add("red");
-        a.classList.add("red");
-     
+  // Click on A or B
+  a.addEventListener("click", () => {
+    a.classList.toggle("red");
+    a.classList.toggle("orange");
+    updateBottom();
+  });
+
+  b.addEventListener("click", () => {
+    b.classList.toggle("red");
+    b.classList.toggle("orange");
+    updateBottom();
+  });
+</script>
+
+</body>
+</html>
