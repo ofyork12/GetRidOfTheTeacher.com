@@ -25,4 +25,24 @@
       border: 16px solid #fff;   /* thick white outline */
       cursor: pointer;
       transition: all 0.5s ease;
-      box-shadow: 0 
+      box-shadow: 0 0 80px rgba(255,255,255,0.3);
+    }
+    .circle.red {
+      background: #ff0000;
+      box-shadow: 0 0 150px #ff0000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="circle" id="myCircle"></div>
+
+<script>
+  const circle = document.getElementById("myCircle");
+  circle.addEventListener("click", () => {
+    circle.classList.toggle("red");
+  });
+</script>
+
+</body>
+</html>
