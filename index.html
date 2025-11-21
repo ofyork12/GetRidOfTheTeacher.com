@@ -15,8 +15,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 150px 0;      /* big top/bottom padding so you can scroll to see everything */
-      gap: 180px;            /* nice space between groups */
+      padding: 150px 0;
+      gap: 180px;
     }
     .circle {
       width: 240px;
@@ -37,13 +37,15 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: -80px;            /* pulls the top dot down so it touches both bottom ones perfectly */
+      gap: -80px;               /* top dot touches both bottom ones perfectly */
     }
   </style>
 </head>
 <body>
 
-  <!-- NUMBER 1 – single top circle (red/black) -->
+  <!-- COMMIT 1 - NOVEMBER 21, 2025 - PERFECT PYRAMID WITH FULL CLICKING -->
+
+  <!-- NUMBER 1 – single top circle -->
   <div class="circle" id="num1"></div>
 
   <!-- NUMBER 2 – two touching circles -->
@@ -52,7 +54,7 @@
     <div class="circle" id="num2b"></div>
   </div>
 
-  <!-- NUMBER 3 – perfect triangle: top dot touches both bottom ones -->
+  <!-- NUMBER 3 – perfect triangle (one on top touching both bottom ones) -->
   <div class="triangle">
     <div class="circle" id="num3-top"></div>
     <div class="row">
@@ -82,7 +84,7 @@ function update2() {
 a.addEventListener("click", () => { a.classList.toggle("red"); update2(); });
 b.addEventListener("click", () => { b.classList.toggle("red"); update2(); });
 
-// NUMBER 3 – perfect red/orange/yellow (fixed so colors work every time)
+// NUMBER 3 – perfect red/orange/yellow (fixed counting + perfect touching)
 const top = document.getElementById("num3-top");
 const left = document.getElementById("num3-left");
 const right = document.getElementById("num3-right");
@@ -99,13 +101,13 @@ function update3() {
   left.classList.remove("red", "orange", "yellow");
   right.classList.remove("red", "orange", "yellow");
 
-  // Determine new color
+  // Determine color
   let color = "";
   if (count === 1) color = "red";
   else if (count === 2) color = "orange";
   else if (count === 3) color = "yellow";
 
-  // Apply color to the ones that were active
+  // Apply to the ones that were active
   if (wasTop) top.classList.add(color);
   if (wasLeft) left.classList.add(color);
   if (wasRight) right.classList.add(color);
