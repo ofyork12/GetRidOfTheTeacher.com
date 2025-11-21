@@ -35,4 +35,54 @@
     }
     .pair {
       display: flex;
-      gap: -72px;
+      gap: -72px; /* perfect touch */
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NUMBER 1 – completely independent -->
+  <div class="circle" id="num1"></div>
+
+  <!-- NUMBER 2 – only these two affect each other -->
+  <div class="pair">
+    <div class="circle" id="num2a"></div>
+    <div class="circle" id="num2b"></div>
+  </div>
+
+<script>
+// NUMBER 1 – works perfectly (red ↔ black forever, nothing else touches it)
+document.getElementById("num1").addEventListener("click", function() {
+  this.classList.toggle("red");
+});
+
+// NUMBER 2 – perfect behavior, completely separate from number 1
+const a = document.getElementById("num2a");
+const b = document.getElementById("num2b");
+
+function update2() {
+  const aRed = a.classList.contains("red");
+  const bRed = b.classList.contains("red");
+
+  a.classList.remove("orange");
+  b.classList.remove("orange");
+
+  if (aRed && bRed) {
+    a.classList.add("orange");
+    b.classList.add("orange");
+  }
+}
+
+a.addEventListener("click", function() {
+  this.classList.toggle("red");
+  update2();
+});
+
+b.addEventListener("click", function() {
+  this.classList.toggle("red");
+  update2();
+});
+</script>
+
+</body>
+</html>
