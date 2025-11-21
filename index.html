@@ -8,36 +8,105 @@
     body {
       margin: 0;
       height: 100vh;
-      background: #000;                    /* black background */
+      background: #000;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
+      gap: 60px;
+      font-family: sans-serif;
     }
     .circle {
-      width: 420px;
-      height: 420px;
-      background: transparent;             /* clear center */
-      border: 12px solid #fff;             /* white outline */
       border-radius: 50%;
       cursor: pointer;
       transition: all 0.5s ease;
-      box-shadow: 0 0 40px rgba(255,255,255,0.3);
+      box-shadow: 0 0 40px rgba(255,255,255,0.2);
     }
-    .circle.red {
-      background: #ff0000;                  /* solid red when clicked */
+    /* Big top circle */
+    #mainCircle {
+      width: 420px;
+      height: 420px;
+      background: transparent;
+      border: 12px solid #fff;
+    }
+    #mainCircle.red {
+      background: #ff0000;
       border-color: #ff0000;
-      box-shadow: 0 0 100px #ff0000;
+      box-shadow: 0 0 120px #ff0000;
+    }
+    /* Bottom two smaller circles */
+    .small {
+      width: 180px;
+      height: 180px;
+      background: #111;
+      border: 8px solid #333;
+    }
+    .small.red {
+      background: #ff0000;
+      border-color: #ff0000;
+      box-shadow: 0 0 80px #ff0000;
+    }
+    .small.orange {
+      background: #ff8800;
+      border-color: #ff8800;
+      box-shadow: 0 0 80px #ff8800;
+    }
+    .container {
+      display: flex;
+      gap: 80px;
     }
   </style>
 </head>
 <body>
 
-  <div class="circle" id="myCircle"></div>
+  <!-- Big top circle -->
+  <div class="circle" id="mainCircle"></div>
+
+  <!-- Bottom two circles -->
+  <div class="container">
+    <div class="circle small" id="dot1"></div>
+    <div class="circle small" id="dot2"></div>
+  </div>
 
   <script>
-    const circle = document.getElementById("myCircle");
-    circle.addEventListener("click", () => {
-      circle.classList.toggle("red");
+    const main = document.getElementById("mainCircle");
+    const dot1 = document.getElementById("dot1");
+    const dot2 = document.getElementById("dot2");
+
+    // Top big circle — simple toggle
+    main.addEventListener("click", () => {
+      main.classList.toggle("red");
+    });
+
+    // Bottom dots logic
+    function updateDots() {
+      const d1 = dot1.classList.contains("red") || dot1.classList.contains("orange");
+      const d2 = dot2.classList.contains("red") || dot2.classList.contains("orange");
+      const count = (d1 ? 1 : 0) + (d2 ? 1 : 0);
+
+      // Remove all color classes first
+      dot1.className = "circle small";
+      dot2.className = "circle small";
+
+      if (count === 1) {
+        if (d1) dot1.classList.add("red");
+        if (d2) dot2.classList.add("red");
+      } else if (count === 2) {
+        dot1.classList.add("orange");
+        dot2.classList.add("orange");
+      }
+    }
+
+    dot1.addEventListener("click", () => {
+      dot1.classList.toggle("red");
+      dot1.classList.toggle("orange");
+      updateDots();
+    });
+
+    dot2.addEventListener("click", () => {
+      dot2.classList.toggle("red");
+      dot2.classList.toggle("orange");
+      updateDots();
     });
   </script>
 
