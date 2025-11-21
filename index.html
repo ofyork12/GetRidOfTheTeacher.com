@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Get Rid of the Teacher</title>
   <style>
-    body{margin:0;height:100vh;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:110px;}
+    body{margin:0;height:100vh;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:120px;}
     .circle{
       width:240px;height:240px;border-radius:50%;background:#111;border:12px solid #fff;
       cursor:pointer;transition:all 0.5s ease;box-shadow:0 0 60px rgba(255,255,255,0.25);
@@ -17,19 +17,29 @@
 </head>
 <body>
 
-  <!-- Number 1 — completely independent -->
-  <div class="circle" id="one"></div>
+  <!-- NUMBER 1 – completely independent (red/black only) -->
+  <div class="circle" id="num1"></div>
 
-  <!-- Number 2 — completely independent group -->
+  <!-- NUMBER 2 – only these two talk to each other -->
   <div class="pair">
-    <div class="circle" id="twoA"></div>
-    <div class="circle" id="twoB"></div>
+    <div class="circle" id="num2a"></div>
+    <div class="circle" id="num2b"></div>
   </div>
 
 <script>
-  // Number 1 — simple red/black toggle
-  document.getElementById("one").addEventListener("click", function() {
+  // NUMBER 1 – simple red/black toggle, never orange, never affected by anything
+  document.getElementById("num1").addEventListener("click", function() {
     this.classList.toggle("red");
   });
 
-  // Number 2 — only these
+  // NUMBER 2 – only these two affect each other
+  const a = document.getElementById("num2a");
+  const b = document.getElementById("num2b");
+
+  function updateNumber2() {
+    const aRed = a.classList.contains("red");
+    const bRed = b.classList.contains("red");
+
+    // remove orange from both first
+    a.classList.remove("orange");
+    b.class
