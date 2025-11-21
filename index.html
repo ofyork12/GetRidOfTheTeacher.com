@@ -11,12 +11,13 @@
   <style>
     body {
       margin: 0;
+      height: 100vh;
       background: #000;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 150px 0;
-      gap: 180px;
+      gap: 120px;
     }
     .circle {
       width: 240px;
@@ -30,101 +31,24 @@
     }
     .circle.red     { background: #ff0000; box-shadow: 0 0 130px #ff0000; }
     .circle.orange  { background: #ff6200; box-shadow: 0 0 130px #ff6200; }
-    .circle.yellow  { background: #ffff00; box-shadow: 0 0 130px #ffff00; }
 
-    .row { display: flex; gap: -72px; }
-    .triangle {
+    .pair {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: -116px;   /* <-- PERFECT touching – top dot sits right on the two bottom ones */
-    }
-    .version {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #0f0;
-      font-size: 140px;
-      font-weight: bold;
-      text-shadow: 0 0 50px #0f0;
-      z-index: 10;
+      gap: -72px;   /* makes the two circles touch perfectly */
     }
   </style>
 </head>
 <body>
 
-  <!-- BIG VERSION NUMBER – YOU WILL SEE THIS HUGE 8 IMMEDIATELY -->
-  <div class="version">8</div>
+  <!-- NUMBER 1 – single top circle (red ↔ black forever) -->
+  <div class="circle" id="one"></div>
 
-  <!-- NUMBER 1 – single top circle -->
-  <div class="circle" id="num1"></div>
-
-  <!-- NUMBER 2 – two touching circles -->
-  <div class="row">
-    <div class="circle" id="num2a"></div>
-    <div class="circle" id="num2b"></div>
-  </div>
-
-  <!-- NUMBER 3 – perfect touching triangle -->
-  <div class="triangle">
-    <div class="circle" id="num3-top"></div>
-    <div class="row">
-      <div class="circle" id="num3-left"></div>
-      <div class="circle" id="num3-right"></div>
-    </div>
+  <!-- NUMBER 2 – two touching circles below (red/orange) -->
+  <div class="pair">
+    <div class="circle" id="twoA"></div>
+    <div class="circle" id="twoB"></div>
   </div>
 
 <script>
 // NUMBER 1 – perfect red/black toggle
-document.getElementById("num1").addEventListener("click", function() {
-  this.classList.toggle("red");
-});
-
-// NUMBER 2 – perfect red/orange
-const a = document.getElementById("num2a");
-const b = document.getElementById("num2b");
-
-function update2() {
-  a.classList.remove("orange");
-  b.classList.remove("orange");
-  if (a.classList.contains("red") && b.classList.contains("red")) {
-    a.classList.add("orange");
-    b.classList.add("orange");
-  }
-}
-a.addEventListener("click", () => { a.classList.toggle("red"); update2(); });
-b.addEventListener("click", () => { b.classList.toggle("red"); update2(); });
-
-// NUMBER 3 – perfect red/orange/yellow
-const top = document.getElementById("num3-top");
-const left = document.getElementById("num3-left");
-const right = document.getElementById("num3-right");
-
-function update3() {
-  const wasTop = top.classList.contains("red");
-  const wasLeft = left.classList.contains("red");
-  const wasRight = right.classList.contains("red");
-  const count = (wasTop ? 1 : 0) + (wasLeft ? 1 : 0) + (wasRight ? 1 : 0);
-
-  top.classList.remove("red", "orange", "yellow");
-  left.classList.remove("red", "orange", "yellow");
-  right.classList.remove("red", "orange", "yellow");
-
-  let color = "";
-  if (count === 1) color = "red";
-  else if (count === 2) color = "orange";
-  else if (count === 3) color = "yellow";
-
-  if (wasTop) top.classList.add(color);
-  if (wasLeft) left.classList.add(color);
-  if (wasRight) right.classList.add(color);
-}
-
-top.addEventListener("click", () => { top.classList.toggle("red"); update3(); });
-left.addEventListener("click", () => { left.classList.toggle("red"); update3(); });
-right.addEventListener("click", () => { right.classList.toggle("red"); update3(); });
-</script>
-
-</body>
-</html>
+document.getElementById("one").addEventListener("click",
