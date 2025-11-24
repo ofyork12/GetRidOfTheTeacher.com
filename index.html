@@ -310,9 +310,43 @@
       bottom: calc(var(--triangle-rise) * 3);
       transform: translateX(-50%);
     }
+    .game-navigation {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .game-nav-button {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      background: transparent;
+      color: #fff;
+      border: 3px solid #fff;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .game-nav-button:hover {
+      background: #fff;
+      color: #000;
+    }
+    .game-nav-button.active {
+      background: #fff;
+      color: #000;
+    }
   </style>
 </head>
 <body>
+
+  <div class="game-navigation">
+    <a href="index.html" class="game-nav-button active">Practice</a>
+    <a href="bigger-smaller.html" class="game-nav-button">Bigger/Smaller</a>
+    <a href="squares.html" class="game-nav-button">Squares</a>
+  </div>
 
   <div class="controls" role="group" aria-label="Language selector">
     <div class="lang-group">
