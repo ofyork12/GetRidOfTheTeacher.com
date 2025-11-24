@@ -1,4 +1,4 @@
-that I posted here <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -73,6 +73,53 @@ that I posted here <!DOCTYPE html>
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
+    }
+    .set {
+      margin-bottom: 40px;
+    }
+    .answer-display {
+      margin-top: 15px;
+      font-size: 24px;
+      font-weight: bold;
+      min-height: 30px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .answer-display.show {
+      opacity: 1;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+    .lang-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .controls button {
+      padding: 10px 20px;
+      border: 2px solid #fff;
+      border-radius: 999px;
+      background: transparent;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .controls button.active {
+      background: #fff;
+      color: #000;
+    }
+    .controls button.dual {
+      font-size: 13px;
+      padding: 6px 14px;
+      opacity: 0.85;
+      border-style: dashed;
     }
     .circle {
       width: var(--circle-total);
@@ -174,29 +221,63 @@ that I posted here <!DOCTYPE html>
 <body>
 
   <div class="game-navigation">
+    <a href="index.html" class="game-nav-button">← Go Back</a>
     <a href="bigger-smaller.html" class="game-nav-button">Bigger/Smaller</a>
     <a href="squares.html" class="game-nav-button active">Squares</a>
   </div>
 
-  <section class="set">
-    <h2>Number 1</h2>
+  <div class="controls" role="group" aria-label="Language selector">
+    <div class="lang-group">
+      <button data-lang="en" class="active">English</button>
+      <button class="dual" data-mode="sound">Sound</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="vi">Tiếng Việt</button>
+      <button class="dual" data-dual="vi">Tiếng Việt + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="zh">中文</button>
+      <button class="dual" data-dual="zh">中文 + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="ko">한국어</button>
+      <button class="dual" data-dual="ko">한국어 + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="es">Español</button>
+      <button class="dual" data-dual="es">Español + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="fr">Français</button>
+      <button class="dual" data-dual="fr">Français + English</button>
+    </div>
+    <div class="lang-group">
+      <button data-lang="hi">हिन्दी</button>
+      <button class="dual" data-dual="hi">हिन्दी + English</button>
+    </div>
+  </div>
+
+  <section class="set" data-square="1" data-base="1">
+    <h2>1²</h2>
     <div class="single-circle">
       <div class="circle" id="one"></div>
     </div>
+    <div class="answer-display" data-answer="1"></div>
   </section>
 
-  <section class="set">
-    <h2>Number 4</h2>
+  <section class="set" data-square="4" data-base="2">
+    <h2>2²</h2>
     <div class="grid-two" id="four">
       <div class="circle"></div>
       <div class="circle"></div>
       <div class="circle"></div>
       <div class="circle"></div>
     </div>
+    <div class="answer-display" data-answer="4"></div>
   </section>
 
-  <section class="set">
-    <h2>Number 9</h2>
+  <section class="set" data-square="9" data-base="3">
+    <h2>3²</h2>
     <div class="grid-three" id="nine">
       <div class="circle"></div>
       <div class="circle"></div>
@@ -208,10 +289,11 @@ that I posted here <!DOCTYPE html>
       <div class="circle"></div>
       <div class="circle"></div>
     </div>
+    <div class="answer-display" data-answer="9"></div>
   </section>
 
-  <section class="set">
-    <h2>Number 16</h2>
+  <section class="set" data-square="16" data-base="4">
+    <h2>4²</h2>
     <div class="grid-four" id="sixteen">
       <div class="circle"></div>
       <div class="circle"></div>
@@ -230,11 +312,13 @@ that I posted here <!DOCTYPE html>
       <div class="circle"></div>
       <div class="circle"></div>
     </div>
+    <div class="answer-display" data-answer="16"></div>
   </section>
 
-  <section class="set">
-    <h2>Number 25</h2>
+  <section class="set" data-square="25" data-base="5">
+    <h2>5²</h2>
     <div class="grid-five" id="square-25"></div>
+    <div class="answer-display" data-answer="25"></div>
   </section>
 
   <div id="moreSquares"></div>
@@ -349,6 +433,9 @@ function speakNumber(count) {
 
 function setupGroup(selector, palette) {
   const circles = Array.from(document.querySelectorAll(selector));
+  const section = circles[0].closest('.set');
+  const answerDisplay = section ? section.querySelector('.answer-display') : null;
+  let clickCount = 0;
 
   function refreshColors() {
     circles.forEach(circle => circle.classList.remove(...COLOR_CLASSES));
@@ -363,18 +450,52 @@ function setupGroup(selector, palette) {
 
   circles.forEach(circle => {
     circle.addEventListener("click", () => {
+      const wasActive = circle.classList.contains("red");
       circle.classList.toggle("red");
       const count = refreshColors();
       speakNumber(count);
+      
+      if (answerDisplay && count > 0 && !wasActive) {
+        clickCount++;
+        answerDisplay.dataset.clickCount = clickCount;
+        if (clickCount >= 3) {
+          const answer = answerDisplay.dataset.answer;
+          answerDisplay.textContent = answer;
+          answerDisplay.classList.add('show');
+        }
+      } else if (answerDisplay && count === 0) {
+        clickCount = 0;
+        answerDisplay.dataset.clickCount = '0';
+        answerDisplay.textContent = '';
+        answerDisplay.classList.remove('show');
+      }
     });
   });
 }
 
 // NUMBER 1 – single circle with voice feedback
 const single = document.getElementById("one");
+const section1 = single.closest('.set');
+const answerDisplay1 = section1.querySelector('.answer-display');
+let clickCount1 = 0;
 single.addEventListener("click", function() {
   this.classList.toggle("red");
-  speakNumber(this.classList.contains("red") ? 1 : 0);
+  const count = this.classList.contains("red") ? 1 : 0;
+  speakNumber(count);
+  
+  if (count > 0) {
+    clickCount1++;
+    answerDisplay1.dataset.clickCount = clickCount1;
+    if (clickCount1 >= 3) {
+      answerDisplay1.textContent = '1';
+      answerDisplay1.classList.add('show');
+    }
+  } else {
+    clickCount1 = 0;
+    answerDisplay1.dataset.clickCount = '0';
+    answerDisplay1.textContent = '';
+    answerDisplay1.classList.remove('show');
+  }
 });
 
 // Language controls
@@ -403,6 +524,20 @@ function selectLanguage(lang, useDual, silent = false) {
     speakNumber(lastSpokenCount);
   }
 }
+
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectLanguage(btn.dataset.lang, false);
+  });
+});
+
+dualButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectLanguage(btn.dataset.dual, true);
+  });
+});
+
+selectLanguage("en", false, true);
 
 setupGroup("#four .circle", {2: "orange", 3: "yellow", 4: "green"});
 setupGroup("#nine .circle", {2: "orange", 3: "yellow", 4: "green", 5: "blue", 6: "purple", 7: "brown", 8: "pink", 9: "sky"});
@@ -524,6 +659,9 @@ const COLOR_MAP = {
 // NUMBER 16 – two clicks: first 10 red, then 6 purple (triangle in top-right)
 let sixteenClickCount = 0;
 const sixteenCircles = Array.from(document.querySelectorAll("#sixteen .circle"));
+const section16 = sixteenCircles[0].closest('.set');
+const answerDisplay16 = section16.querySelector('.answer-display');
+let clickCount16 = 0;
 const gridSize16 = 4;
 const topRightIndices16 = getTrianglePatternIndices(gridSize16); // 6 dots as triangle
 
@@ -562,6 +700,12 @@ sixteenCircles.forEach(circle => {
       });
       sixteenClickCount = 1;
       speakNumber(10);
+      clickCount16++;
+      answerDisplay16.dataset.clickCount = clickCount16;
+      if (clickCount16 >= 3) {
+        answerDisplay16.textContent = '16';
+        answerDisplay16.classList.add('show');
+      }
     } else if (sixteenClickCount === 1) {
       // Fill 6 purple dots in triangle pattern in top-right
       topRightIndices16.forEach(i => {
@@ -571,11 +715,21 @@ sixteenCircles.forEach(circle => {
       });
       sixteenClickCount = 2;
       speakNumber(16);
+      clickCount16++;
+      answerDisplay16.dataset.clickCount = clickCount16;
+      if (clickCount16 >= 3) {
+        answerDisplay16.textContent = '16';
+        answerDisplay16.classList.add('show');
+      }
     } else {
       sixteenCircles.forEach(c => {
         c.classList.remove("red", "purple", ...COLOR_CLASSES);
       });
       sixteenClickCount = 0;
+      clickCount16 = 0;
+      answerDisplay16.dataset.clickCount = '0';
+      answerDisplay16.textContent = '';
+      answerDisplay16.classList.remove('show');
       speakNumber(0);
     }
   });
@@ -589,9 +743,11 @@ function generateSquare(n) {
   // Create section
   const section = document.createElement('section');
   section.className = 'set';
+  section.dataset.square = square;
+  section.dataset.base = n;
   
   const h2 = document.createElement('h2');
-  h2.textContent = `Number ${square}`;
+  h2.textContent = `${n}²`;
   section.appendChild(h2);
   
   const grid = document.createElement('div');
@@ -615,6 +771,13 @@ function generateSquare(n) {
   }
   
   section.appendChild(grid);
+  
+  // Add answer display
+  const answerDisplay = document.createElement('div');
+  answerDisplay.className = 'answer-display';
+  answerDisplay.dataset.answer = square;
+  answerDisplay.dataset.clickCount = '0';
+  section.appendChild(answerDisplay);
   
   // Setup click handlers
   const circles = Array.from(grid.querySelectorAll('.circle'));
@@ -1312,6 +1475,80 @@ function generateSquare(n) {
             c.classList.add(color);
             filledCount.count++;
             
+            // For 441, offset the 40 part (tens place) symmetrically
+            if (square === 441 && isTensPlace && color === 'orange') {
+              const row = Math.floor(i / gridSize);
+              const col = i % gridSize;
+              
+              // Only process dots that are in the 40 area (rows 0-3, cols 0-9)
+              if (row >= 0 && row < 4 && col >= 0 && col < 10) {
+                // Hide the original circle in the grid
+                c.style.visibility = 'hidden';
+                
+                // Check if we've already created a separated circle for this index
+                const existingSeparated = separatedCircles.find(sc => {
+                  const scRow = parseInt(sc.dataset.originalRow);
+                  const scCol = parseInt(sc.dataset.originalCol);
+                  return scRow === row && scCol === col;
+                });
+                
+                if (!existingSeparated) {
+                  // Create a new circle positioned offset symmetrically (right and up)
+                  const separatedCircle = document.createElement('div');
+                  separatedCircle.className = 'circle orange';
+                  separatedCircle.style.position = 'absolute';
+                  separatedCircle.style.zIndex = '5';
+                  separatedCircle.dataset.originalRow = row;
+                  separatedCircle.dataset.originalCol = col;
+                  // Symmetric offset: equal amounts right and up
+                  separatedCircle.style.left = `calc(var(--circle-total) * ${col} + 0.5 * var(--circle-total))`;
+                  separatedCircle.style.top = `calc(var(--circle-total) * ${row} - 0.5 * var(--circle-total))`;
+                  separatedCircle.style.display = 'block';
+                  separatedCircle.style.visibility = 'visible';
+                  separatedCircle.style.opacity = '1';
+                  grid.appendChild(separatedCircle);
+                  separatedCircles.push(separatedCircle);
+                }
+              }
+            }
+            
+            // For 441, optionally offset the 1 part (ones place) too
+            if (square === 441 && isOnesPlace && color === 'red') {
+              const row = Math.floor(i / gridSize);
+              const col = i % gridSize;
+              
+              // Only process the single dot in top right
+              if (topRightIndices.includes(i)) {
+                // Hide the original circle in the grid
+                c.style.visibility = 'hidden';
+                
+                // Check if we've already created a separated circle for this index
+                const existingSeparated = separatedCircles.find(sc => {
+                  const scRow = parseInt(sc.dataset.originalRow);
+                  const scCol = parseInt(sc.dataset.originalCol);
+                  return scRow === row && scCol === col;
+                });
+                
+                if (!existingSeparated) {
+                  // Create a new circle positioned offset symmetrically (right and up)
+                  const separatedCircle = document.createElement('div');
+                  separatedCircle.className = 'circle red';
+                  separatedCircle.style.position = 'absolute';
+                  separatedCircle.style.zIndex = '10';
+                  separatedCircle.dataset.originalRow = row;
+                  separatedCircle.dataset.originalCol = col;
+                  // Symmetric offset: equal amounts right and up
+                  separatedCircle.style.left = `calc(var(--circle-total) * ${col} + 0.5 * var(--circle-total))`;
+                  separatedCircle.style.top = `calc(var(--circle-total) * ${row} - 0.5 * var(--circle-total))`;
+                  separatedCircle.style.display = 'block';
+                  separatedCircle.style.visibility = 'visible';
+                  separatedCircle.style.opacity = '1';
+                  grid.appendChild(separatedCircle);
+                  separatedCircles.push(separatedCircle);
+                }
+              }
+            }
+            
             // For 225, make sure blue dots (ones place) appear on top
             if (square === 225 && isOnesPlace && color === 'blue') {
               c.style.zIndex = '20';
@@ -1477,12 +1714,20 @@ function generateSquare(n) {
         clickCount++;
         const currentTotal = components.slice(0, clickCount).reduce((a, b) => a + b, 0);
         speakNumber(currentTotal);
+        
+        // Track clicks for answer display (show after 3 clicks)
+        let answerClickCount = parseInt(answerDisplay.dataset.clickCount) + 1;
+        answerDisplay.dataset.clickCount = answerClickCount;
+        if (answerClickCount >= 3) {
+          answerDisplay.textContent = square;
+          answerDisplay.classList.add('show');
+        }
       } else {
         // Reset
         circles.forEach(c => {
           c.classList.remove(...COLOR_CLASSES);
-          // For 256 and 225, make hidden circles visible again on reset
-          if (square === 256 || square === 225) {
+          // For 256, 225, and 441, make hidden circles visible again on reset
+          if (square === 256 || square === 225 || square === 441) {
             c.style.visibility = '';
           }
         });
@@ -1494,6 +1739,9 @@ function generateSquare(n) {
         });
         separatedCircles.length = 0;
         clickCount = 0;
+        answerDisplay.dataset.clickCount = '0';
+        answerDisplay.textContent = '';
+        answerDisplay.classList.remove('show');
         speakNumber(0);
       }
   });
