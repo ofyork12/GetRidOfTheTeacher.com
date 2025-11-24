@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Squares Game</title>
+  <style>
+    :root {
+      --circle-size: clamp(30px, 6vw, 60px); /* Smaller for up to 625 dots */
+      --circle-border: clamp(3px, 0.6vw, 6px);
+      --circle-total: calc(var(--circle-size) + var(--circle-border) * 2);
+      --section-gap: clamp(30px, 6vw, 60px);
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--section-gap);
+      padding: 40px 12px 120px;
+      overflow-y: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .game-navigation {
+      display: flex;
+      gap: 20px;
+      margin: 20px 0;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .game-nav-button {
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      background: transparent;
+      color: #fff;
+      border: 3px solid #fff;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .game-nav-button:hover {
+      background: #fff;
+      color: #000;
+    }
+    .game-nav-button.active {
+      background: #fff;
+      color: #000;
+    }
+    .set {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      text-align: center;
+    }
+    .set > :last-child {
+      margin: 0 auto;
+    }
+    .set h2 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .circle {
+      width: var(--circle-total);
+      height: var(--circle-total);
+      border-radius: 50%;
+      background: #222;
+      border: var(--circle-border) solid #fff;
+      cursor: pointer;
+      transition: background 0.25s ease;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .circle:focus-visible,
+    .circle:focus,
+    .circle:active {
+      outline: none;
+    }
+    .circle.red { background: #ff0000; }
+    .circle.orange { background: #ff6200; }
+    .circle.yellow { background: #ffe600; }
+    .circle.green { background: #00a12c; }
+    .circle.blue { background: #0030ff; }
+    .circle.purple { background: #6a1b9a; }
+    .circle.brown { background: #7a3b00; }
+    .circle.pink { background: #ff3fa6; }
+    .circle.sky { background: #38c7ff; }
+    .circle.red-final { background: #ff0000; }
+
+    /* Single circle */
+    .single-circle {
+      width: var(--circle-total);
+      height: var(--circle-total);
+    }
+
+    /* 2x2 grid (4 circles) */
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(2, var(--circle-total));
+      grid-template-rows: repeat(2, var(--circle-total));
+      gap: 0;
+      width: calc(var(--circle-total) * 2);
+      height: calc(var(--circle-total) * 2);
+    }
+    .grid-two .circle {
+      position: static;
+    }
+
+    /* 3x3 grid (9 circles) */
+    .grid-three {
+      display: grid;
+      grid-template-columns: repeat(3, var(--circle-total));
+      grid-template-rows: repeat(3, var(--circle-total));
+      gap: 0;
+      width: calc(var(--circle-total) * 3);
+      height: calc(var(--circle-total) * 3);
+    }
+    .grid-three .circle {
+      position: static;
+    }
+
+    /* 4x4 grid (16 circles) */
+    .grid-four {
+      display: grid;
+      grid-template-columns: repeat(4, var(--circle-total));
+      grid-template-rows: repeat(4, var(--circle-total));
+      gap: 0;
+      width: calc(var(--circle-total) * 4);
+      height: calc(var(--circle-total) * 4);
+    }
+    .grid-four .circle {
+      position: static;
+    }
+
+    /* 5x5 grid (25 circles) */
+    .grid-five {
+      display: grid;
+      grid-template-columns: repeat(5, var(--circle-total));
+      grid-template-rows: repeat(5, var(--circle-total));
+      gap: 0;
+      width: calc(var(--circle-total) * 5);
+      height: calc(var(--circle-total) * 5);
+    }
+    .grid-five .circle {
+      position: static;
+    }
+
+    /* Dynamic grid classes for larger squares */
+    .grid-dynamic {
+      display: grid;
+      gap: 0;
+      cursor: pointer;
+    }
+    .grid-dynamic .circle {
+      position: static;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-navigation">
+    <a href="index - Copy - Copy.html" class="game-nav-button">Bigger/Smaller</a>
+    <a href="squares.html" class="game-nav-button active">Squares</a>
+  </div>
+
+  <section class="set">
+    <h2>Number 1</h2>
+    <div class="single-circle">
+      <div class="circle" id="one"></div>
+    </div>
+  </section>
+
+  <section class="set">
+    <h2>Number 4</h2>
+    <div class="grid-two" id="four">
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+    </div>
+  </section>
+
+  <section class="set">
+    <h2>Number 9</h2>
+    <div class="grid-three" id="nine">
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+    </div>
+  </section>
+
+  <section class="set">
+    <h2>Number 16</h2>
+    <div class="grid-four" id="sixteen">
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+    </div>
+  </section>
+
+  <section class="set">
+    <h2>Number 25</h2>
+    <div class="grid-five" id="square-25"></div>
+  </section>
+
+  <div id="moreSquares"></div>
+
+<script>
+const COLOR_CLASSES = ["orange","yellow","green","blue","purple","brown","pink","sky","red-final"];
+// Generate number words up to 625
+function generateNumberWords(max) {
+  const words = { en: [], zh: [], es: [], fr: [], hi: [], ko: [], vi: [] };
+  const basic = {
+    en: ["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"],
+    zh: ["零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十"],
+    es: ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte"],
+    fr: ["zéro","un","deux","trois","quatre","cinq","six","sept","huit","neuf","dix","onze","douze","treize","quatorze","quinze","seize","dix-sept","dix-huit","dix-neuf","vingt"],
+    hi: ["शून्य","एक","दो","तीन","चार","पांच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस"],
+    ko: ["영","일","이","삼","사","오","육","칠","팔","구","십","십일","십이","십삼","십사","십오","십육","십칠","십팔","십구","이십"],
+    vi: ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín","mười","mười một","mười hai","mười ba","mười bốn","mười lăm","mười sáu","mười bảy","mười tám","mười chín","hai mươi"]
+  };
+  
+  for (let i = 0; i <= max && i <= 20; i++) {
+    Object.keys(words).forEach(lang => {
+      words[lang].push(basic[lang][i] || i.toString());
+    });
+  }
+  
+  // For numbers > 20, use simple number format
+  for (let i = 21; i <= max; i++) {
+    words.en.push(i.toString());
+    words.zh.push(i.toString());
+    words.es.push(i.toString());
+    words.fr.push(i.toString());
+    words.hi.push(i.toString());
+    words.ko.push(i.toString());
+    words.vi.push(i.toString());
+  }
+  
+  return words;
+}
+
+const NUMBER_WORDS = generateNumberWords(625);
+const LANGUAGE_HINTS = {
+  en: "English",
+  zh: "zh-CN",
+  es: "es",
+  fr: "fr",
+  hi: "hi",
+  ko: "ko-KR",
+  vi: "vi-VN"
+};
+let currentLang = "en";
+let preferredVoice = null;
+let englishVoice = null;
+const dualLang = new Set();
+let lastSpokenCount = 0;
+
+function pickVoice(langCode) {
+  if (!("speechSynthesis" in window)) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  const langGroup = voices.filter(v => v.lang && v.lang.startsWith(LANGUAGE_HINTS[langCode] || langCode));
+  if (langGroup.length) return langGroup[0];
+
+  const fallbacks = [
+    "Microsoft Aria Online (Natural) - English (United States)",
+    "Google US English",
+    "Google UK English Female",
+    "Microsoft Zira Desktop - English (United States)"
+  ];
+
+  for (const name of fallbacks) {
+    const voice = voices.find(v => v.name === name);
+    if (voice) return voice;
+  }
+  return voices.find(v => v.lang && v.lang.startsWith("en")) || voices[0];
+}
+
+function initVoices(lang = currentLang) {
+  preferredVoice = pickVoice(lang);
+  englishVoice = pickVoice("en");
+}
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = initVoices;
+  initVoices();
+}
+
+function speakNumber(count) {
+  const words = NUMBER_WORDS[currentLang] || NUMBER_WORDS.en;
+  if (count < 0 || count >= words.length) return;
+  if (!("speechSynthesis" in window)) return;
+  lastSpokenCount = count;
+  
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.resume();
+  const utterance = new SpeechSynthesisUtterance(words[count]);
+  utterance.rate = 1.15;
+  utterance.pitch = 1;
+  if (preferredVoice) utterance.voice = preferredVoice;
+  requestAnimationFrame(() => {
+    window.speechSynthesis.speak(utterance);
+    if (dualLang.has(currentLang) && currentLang !== "en" && englishVoice) {
+      const englishWord = NUMBER_WORDS.en[count];
+      const follow = new SpeechSynthesisUtterance(englishWord);
+      follow.rate = 1.15;
+      follow.pitch = 1;
+      follow.voice = englishVoice;
+      window.speechSynthesis.speak(follow);
+    }
+  });
+}
+
+function setupGroup(selector, palette) {
+  const circles = Array.from(document.querySelectorAll(selector));
+
+  function refreshColors() {
+    circles.forEach(circle => circle.classList.remove(...COLOR_CLASSES));
+    const active = circles.filter(circle => circle.classList.contains("red"));
+    const color = palette[active.length];
+
+    if (color) {
+      active.forEach(circle => circle.classList.add(color));
+    }
+    return active.length;
+  }
+
+  circles.forEach(circle => {
+    circle.addEventListener("click", () => {
+      circle.classList.toggle("red");
+      const count = refreshColors();
+      speakNumber(count);
+    });
+  });
+}
+
+// NUMBER 1 – single circle with voice feedback
+const single = document.getElementById("one");
+single.addEventListener("click", function() {
+  this.classList.toggle("red");
+  speakNumber(this.classList.contains("red") ? 1 : 0);
+});
+
+// Language controls
+const buttons = Array.from(document.querySelectorAll(".controls button[data-lang]"));
+const dualButtons = Array.from(document.querySelectorAll(".controls button[data-dual]"));
+
+function selectLanguage(lang, useDual, silent = false) {
+  const isNewSelection = currentLang !== lang || useDual !== dualLang.has(lang);
+  currentLang = lang;
+  initVoices(lang);
+  dualLang.clear();
+  if (useDual && lang !== "en") {
+    dualLang.add(lang);
+  }
+  buttons.forEach(btn => {
+    const active = btn.dataset.lang === lang && !useDual;
+    btn.classList.toggle("active", active);
+  });
+
+  dualButtons.forEach(btn => {
+    const active = btn.dataset.dual === lang && useDual;
+    btn.classList.toggle("active", active);
+  });
+
+  if (!silent && isNewSelection) {
+    speakNumber(lastSpokenCount);
+  }
+}
+
+setupGroup("#four .circle", {2: "orange", 3: "yellow", 4: "green"});
+setupGroup("#nine .circle", {2: "orange", 3: "yellow", 4: "green", 5: "blue", 6: "purple", 7: "brown", 8: "pink", 9: "sky"});
+
+// Helper function to get top right corner indices for a grid
+function getTopRightCornerIndices(gridSize, count) {
+  // Top right corner: top row, rightmost positions
+  // For a grid of size n, top row indices are: 0, 1, 2, ..., n-1
+  // We want the rightmost 'count' positions: n-1, n-2, ..., n-count
+  const indices = [];
+  for (let i = 0; i < count && i < gridSize; i++) {
+    indices.push(gridSize - 1 - i); // Top row, from right to left
+  }
+  return indices.sort((a, b) => a - b); // Sort ascending for easier use
+}
+
+// Helper to get triangle pattern (3, 2, 1) in top right corner for 6 dots
+function getTrianglePatternIndices(gridSize) {
+  // Triangle pattern in top-right corner:
+  // 3 dots in first row, 2 dots in second row, 1 dot in third row
+  // All touching the right side
+  // For 4x4: row 0 has cols 1,2,3; row 1 has cols 2,3; row 2 has col 3
+  // Indices: [1, 2, 3, 6, 7, 11]
+  const indices = [];
+  
+  // Row 0 (first row): 3 dots - cols gridSize-3, gridSize-2, gridSize-1
+  if (gridSize >= 3) {
+    indices.push(0 * gridSize + (gridSize - 3));
+    indices.push(0 * gridSize + (gridSize - 2));
+    indices.push(0 * gridSize + (gridSize - 1));
+  }
+  
+  // Row 1 (second row): 2 dots - cols gridSize-2, gridSize-1
+  if (gridSize >= 2) {
+    indices.push(1 * gridSize + (gridSize - 2));
+    indices.push(1 * gridSize + (gridSize - 1));
+  }
+  
+  // Row 2 (third row): 1 dot - col gridSize-1
+  indices.push(2 * gridSize + (gridSize - 1));
+  
+  return indices;
+}
+
+// Helper to get 2x2 square in top right corner
+function get2x2TopRightIndices(gridSize) {
+  // 2x2 square in top right: rows 0-1, cols gridSize-2 to gridSize-1
+  const indices = [];
+  for (let row = 0; row < 2 && row < gridSize; row++) {
+    for (let col = gridSize - 2; col < gridSize; col++) {
+      indices.push(row * gridSize + col);
+    }
+  }
+  return indices;
+}
+
+// Helper to get 3x3 square in top right corner
+function get3x3TopRightIndices(gridSize) {
+  // 3x3 square in top right: rows 0-2, cols gridSize-3 to gridSize-1
+  const indices = [];
+  for (let row = 0; row < 3 && row < gridSize; row++) {
+    for (let col = gridSize - 3; col < gridSize; col++) {
+      indices.push(row * gridSize + col);
+    }
+  }
+  return indices;
+}
+
+// Helper to get 5 dots pattern (2 in top row, 3 in row below)
+function get5DiagonalPatternIndices(gridSize) {
+  // 5 dots: 2 dots in top row, 3 dots in row below, all in top-right corner
+  // For 5x5: row 0 has cols 3,4; row 1 has cols 2,3,4
+  // Indices: [3, 4, 7, 8, 9]
+  const indices = [];
+  
+  // Row 0 (top row): 2 dots - cols gridSize-2, gridSize-1
+  if (gridSize >= 2) {
+    indices.push(0 * gridSize + (gridSize - 2));
+    indices.push(0 * gridSize + (gridSize - 1));
+  }
+  
+  // Row 1 (row below): 3 dots - cols gridSize-3, gridSize-2, gridSize-1
+  if (gridSize >= 3) {
+    indices.push(1 * gridSize + (gridSize - 3));
+    indices.push(1 * gridSize + (gridSize - 2));
+    indices.push(1 * gridSize + (gridSize - 1));
+  }
+  
+  return indices;
+}
+
+// Helper function to break down a number into components
+function breakDownNumber(num) {
+  const str = num.toString();
+  const components = [];
+  
+  if (str.length === 2) {
+    // Two-digit: tens and ones
+    const tens = parseInt(str[0]) * 10;
+    const ones = parseInt(str[1]);
+    components.push(tens, ones);
+  } else if (str.length === 3) {
+    // Three-digit: hundreds, tens, ones
+    const hundreds = parseInt(str[0]) * 100;
+    const tens = parseInt(str[1]) * 10;
+    const ones = parseInt(str[2]);
+    components.push(hundreds, tens, ones);
+  }
+  
+  return components;
+}
+
+// Color mapping for different numbers
+const COLOR_MAP = {
+  1: "red", 2: "orange", 3: "yellow", 4: "green", 5: "blue",
+  6: "purple", 7: "brown", 8: "pink", 9: "sky", 10: "red-final"
+};
+
+// NUMBER 16 – two clicks: first 10 red, then 6 purple (triangle in top-right)
+let sixteenClickCount = 0;
+const sixteenCircles = Array.from(document.querySelectorAll("#sixteen .circle"));
+const gridSize16 = 4;
+const topRightIndices16 = getTrianglePatternIndices(gridSize16); // 6 dots as triangle
+
+sixteenCircles.forEach(circle => {
+  circle.addEventListener("click", () => {
+    if (sixteenClickCount === 0) {
+      // Fill 10 red dots, excluding the top-right triangle area
+      const alreadyFilled = new Set();
+      sixteenCircles.forEach((c, i) => {
+        if (c.classList.contains("red") || c.classList.contains("purple") || 
+            c.classList.contains("orange") || c.classList.contains("yellow") ||
+            c.classList.contains("green") || c.classList.contains("blue") ||
+            c.classList.contains("brown") || c.classList.contains("pink") ||
+            c.classList.contains("sky") || c.classList.contains("red-final")) {
+          alreadyFilled.add(i);
+        }
+      });
+      
+      // Fill from bottom-left, excluding top-right triangle
+      // Collect all available indices first, then take 10
+      const allIndices = [];
+      for (let row = gridSize16 - 1; row >= 0; row--) {
+        for (let col = 0; col < gridSize16; col++) {
+          const idx = row * gridSize16 + col;
+          if (!topRightIndices16.includes(idx) && !alreadyFilled.has(idx)) {
+            allIndices.push(idx);
+          }
+        }
+      }
+      const indicesToFill = allIndices.slice(0, 10);
+      
+      indicesToFill.forEach(i => {
+        const c = sixteenCircles[i];
+        c.classList.remove(...COLOR_CLASSES);
+        c.classList.add("red");
+      });
+      sixteenClickCount = 1;
+      speakNumber(10);
+    } else if (sixteenClickCount === 1) {
+      // Fill 6 purple dots in triangle pattern in top-right
+      topRightIndices16.forEach(i => {
+        const c = sixteenCircles[i];
+        c.classList.remove(...COLOR_CLASSES);
+        c.classList.add("purple");
+      });
+      sixteenClickCount = 2;
+      speakNumber(16);
+    } else {
+      sixteenCircles.forEach(c => {
+        c.classList.remove("red", "purple", ...COLOR_CLASSES);
+      });
+      sixteenClickCount = 0;
+      speakNumber(0);
+    }
+  });
+});
+
+// Generate all squares from 5^2 to 25^2
+function generateSquare(n) {
+  const square = n * n;
+  const gridSize = n;
+  
+  // Create section
+  const section = document.createElement('section');
+  section.className = 'set';
+  
+  const h2 = document.createElement('h2');
+  h2.textContent = `Number ${square}`;
+  section.appendChild(h2);
+  
+  const grid = document.createElement('div');
+  grid.className = `grid-dynamic`;
+  grid.id = `square-${square}`;
+  grid.style.gridTemplateColumns = `repeat(${gridSize}, var(--circle-total))`;
+  grid.style.gridTemplateRows = `repeat(${gridSize}, var(--circle-total))`;
+  grid.style.width = `calc(var(--circle-total) * ${gridSize})`;
+  grid.style.height = `calc(var(--circle-total) * ${gridSize})`;
+  
+  // For 256 and 225, make grid position relative so we can absolutely position separated dots relative to it
+  if (square === 256 || square === 225) {
+    grid.style.position = 'relative';
+  }
+  
+  // Create circles
+  for (let i = 0; i < square; i++) {
+    const circle = document.createElement('div');
+    circle.className = 'circle';
+    grid.appendChild(circle);
+  }
+  
+  section.appendChild(grid);
+  
+  // Setup click handlers
+  const circles = Array.from(grid.querySelectorAll('.circle'));
+  let clickCount = 0;
+  // Track separated circles for 256 and 225
+  const separatedCircles = [];
+  const components = breakDownNumber(square);
+  const totalClicks = components.length;
+  
+  // Get top right corner indices for ones place
+  const onesValue = components[components.length - 1];
+  let topRightIndices = [];
+  
+  // Special patterns for ones place - ALL ones place numbers go in top right corner
+  // 6 dots: purple triangle pattern in top-right corner (for 16, 36, 196, 256, 576)
+  // 9 dots: sky blue 3x3 square in top-right corner (for 49, 169, 289, 529)
+  if (onesValue === 6) {
+    // Triangle pattern for 6 (1, 2, 3 diagonal) - PURPLE
+    topRightIndices = getTrianglePatternIndices(gridSize);
+  } else if (onesValue === 4) {
+    // 2x2 square for 4 (including 324)
+    topRightIndices = get2x2TopRightIndices(gridSize);
+  } else if (onesValue === 9) {
+    // 3x3 square for 9 - SKY BLUE
+    topRightIndices = get3x3TopRightIndices(gridSize);
+  } else if (onesValue === 5) {
+    // For 225: 5 blue dots in a vertical line in the rightmost column of the 5×5 rectangle (col 14, rows 0-4)
+    // For 25: 5 blue dots in a vertical line in the rightmost column (col 4, rows 0-4)
+    // For other squares: 2x2 square + 1 diagonal for 5
+    if (square === 225) {
+      // Vertical line: 5 dots in column 14 (rightmost column of the 5×5), rows 0-4
+      topRightIndices = [];
+      for (let row = 0; row < 5 && row < gridSize; row++) {
+        topRightIndices.push(row * gridSize + 14);
+      }
+    } else if (square === 25) {
+      // Vertical line: 5 dots in column 4 (rightmost column), rows 0-4
+      topRightIndices = [];
+      for (let row = 0; row < 5 && row < gridSize; row++) {
+        topRightIndices.push(row * gridSize + 4);
+      }
+    } else {
+      topRightIndices = get5DiagonalPatternIndices(gridSize);
+    }
+  } else {
+    // Default: top row rightmost positions
+    topRightIndices = getTopRightCornerIndices(gridSize, onesValue);
+  }
+  
+  // Helper to get bottom left indices (for hundreds place)
+  function getBottomLeftIndices(gridSize, count) {
+    const indices = [];
+    // Start from bottom row, left side
+    for (let row = gridSize - 1; row >= 0 && indices.length < count; row--) {
+      for (let col = 0; col < gridSize && indices.length < count; col++) {
+        const idx = row * gridSize + col;
+        if (!topRightIndices.includes(idx)) {
+          indices.push(idx);
+        }
+      }
+    }
+    return indices.slice(0, count);
+  }
+  
+  // Helper to get upper left indices (for tens place when needed)
+  function getUpperLeftIndices(gridSize, count) {
+    const indices = [];
+    // Start from top row, left side
+    for (let row = 0; row < gridSize && indices.length < count; row++) {
+      for (let col = 0; col < gridSize && indices.length < count; col++) {
+        const idx = row * gridSize + col;
+        if (!topRightIndices.includes(idx)) {
+          indices.push(idx);
+        }
+      }
+    }
+    return indices.slice(0, count);
+  }
+  
+  // Helper to get indices around ones place (for tens place separation in 3-digit numbers)
+  function getIndicesAroundOnes(gridSize, count, topRightIndices, alreadyFilled) {
+    const indices = [];
+    const topRightSet = new Set(topRightIndices);
+    const filledSet = new Set(alreadyFilled);
+    
+    // Get positions around the top right corner, working inward
+    // Start from top rows, near the right side but not in ones place
+    for (let row = 0; row < gridSize && indices.length < count; row++) {
+      for (let col = gridSize - 1; col >= 0 && indices.length < count; col--) {
+        const idx = row * gridSize + col;
+        if (!topRightSet.has(idx) && !filledSet.has(idx)) {
+          indices.push(idx);
+        }
+      }
+    }
+    return indices.slice(0, count);
+  }
+  
+  // Helper to get upper left indices (for tens place in 2-digit numbers, or second component in 3-digit)
+  function getUpperLeftIndices(gridSize, count, excludeIndices, alreadyFilled) {
+    const indices = [];
+    const excludeSet = new Set(excludeIndices || []);
+    const filledSet = new Set(alreadyFilled || []);
+    
+    // Start from top row, left side
+    for (let row = 0; row < gridSize && indices.length < count; row++) {
+      for (let col = 0; col < gridSize && indices.length < count; col++) {
+        const idx = row * gridSize + col;
+        if (!excludeSet.has(idx) && !filledSet.has(idx)) {
+          indices.push(idx);
+        }
+      }
+    }
+    return indices.slice(0, count);
+  }
+  
+  // Make the entire grid clickable, not just individual circles
+  grid.addEventListener("click", (e) => {
+    // Ignore clicks on separated circles (they have data-originalRow attribute)
+    if (e.target.dataset.originalRow !== undefined) {
+      return;
+    }
+    // Process clicks on the grid itself or on regular circles
+    if (clickCount < totalClicks) {
+        const componentValue = components[clickCount];
+        const isOnesPlace = (clickCount === totalClicks - 1);
+        const isHundredsPlace = (clickCount === 0 && components.length === 3);
+        const isTensPlace = (clickCount === 1 && components.length === 3) || (clickCount === 0 && components.length === 2);
+        
+        // Get color based on first digit of component
+        const componentStr = componentValue.toString();
+        const firstDigit = parseInt(componentStr[0]);
+        const colorKey = firstDigit || 10;
+        const color = COLOR_MAP[colorKey] || "red";
+        
+        // Track already filled indices (check for any color class)
+        const alreadyFilled = new Set();
+        circles.forEach((c, i) => {
+          if (c.classList.contains("red") || c.classList.contains("orange") || 
+              c.classList.contains("yellow") || c.classList.contains("green") ||
+              c.classList.contains("blue") || c.classList.contains("purple") ||
+              c.classList.contains("brown") || c.classList.contains("pink") ||
+              c.classList.contains("sky") || c.classList.contains("red-final")) {
+            alreadyFilled.add(i);
+          }
+        });
+        
+        let indicesToFill = [];
+        
+        if (isOnesPlace) {
+          // Ones place: use the pre-calculated top right indices
+          indicesToFill = topRightIndices.filter(i => !alreadyFilled.has(i));
+        } else if (isHundredsPlace) {
+          // Hundreds place: start from bottom left, fill all the way to top
+          if (square === 144) {
+            // Special: 144 - fill 100 red, but leave space for 40 green (rows 2-5, left 10 cols) and 4 (top right 2x2)
+            const allIndices = [];
+            for (let row = gridSize - 1; row >= 0; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                // Skip top right 2x2 (for 4) and rows 2-5, left 10 cols (for 40 green)
+                if (!topRightIndices.includes(idx) && 
+                    !(row >= 2 && row < 6 && col < 10)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 169) {
+            // Special: 169 - 100 red at bottom, leave space for 60 purple and 9 sky
+            const allIndices = [];
+            // Fill from bottom, leave top 3 rows for 60 purple and 9 sky
+            // Fill bottom rows first
+            for (let row = gridSize - 1; row >= 3 && allIndices.length < componentValue; row--) {
+              for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill remaining from row 3, avoiding the top right 3x3 area
+            for (let col = 0; col < gridSize - 3 && allIndices.length < componentValue; col++) {
+              const idx = 3 * gridSize + col;
+              if (!topRightIndices.includes(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 361) {
+            // Special: 361 - 300 yellow, leave space for 60 purple + 1 red
+            // Pattern exactly as specified:
+            // Row 0: 1 yellow + 7 purple + 1 red
+            // Row 1: 1 yellow + 8 purple
+            // Rows 2-5: 8 purple each
+            // Row 6: 7 purple
+            // Row 7: 6 purple
+            // Total: 60 purple + 1 red = 61 positions
+            // Pattern: Row 0: col 10 (yellow) + cols 11-17 (7 purple) + col 18 (red)
+            // Row 1: col 10 (yellow) + cols 11-18 (8 purple)
+            // Rows 2-5: cols 11-18 (8 purple each)
+            // Row 6: cols 12-18 (7 purple)
+            // Row 7: cols 13-18 (6 purple)
+            const allIndices = [];
+            // Fill from bottom, leaving the specified areas empty
+            // Note: col 10 in rows 0-1 should be filled with yellow (not skipped)
+            for (let row = gridSize - 1; row >= 0; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                // Skip row 0: cols 11-18 (7 purple + 1 red), but fill col 10 (yellow)
+                if (row === 0 && col >= 11 && col <= 18) {
+                  continue;
+                }
+                // Skip row 1: cols 11-18 (8 purple), but fill col 10 (yellow)
+                if (row === 1 && col >= 11 && col <= 18) {
+                  continue;
+                }
+                // Skip rows 2-5: cols 11-18 (8 purple each)
+                if (row >= 2 && row <= 5 && col >= 11 && col <= 18) {
+                  continue;
+                }
+                // Skip row 6: cols 12-18 (7 purple)
+                if (row === 6 && col >= 12 && col <= 18) {
+                  continue;
+                }
+                // Skip row 7: cols 13-18 (6 purple)
+                if (row === 7 && col >= 13 && col <= 18) {
+                  continue;
+                }
+                const idx = row * gridSize + col;
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 441) {
+            // Special: 441 - 400 red, need to leave space for 40 (4x10 in top left, offset) and 1 (top right)
+            const allIndices = [];
+            // Fill from bottom, but leave top 4 rows, left 11 columns (for 40 offset) and top right (for 1)
+            for (let row = gridSize - 1; row >= 4; row--) { // Leave top 4 rows
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Also fill row 4, but skip the area for 40 (cols 0-9) and top right (for 1)
+            for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 4 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !(col >= 0 && col < 10)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 225) {
+            // Special: 225 - 200 orange, leave exactly 25 black dots in a 5×5 rectangle (rows 0-4, cols 10-14)
+            const allIndices = [];
+            // Fill from bottom, leaving exactly the 5×5 rectangle (rows 0-4, cols 10-14) empty
+            // Fill all rows from bottom up, skipping only the 5×5 area
+            for (let row = gridSize - 1; row >= 0; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                // Skip the 5×5 rectangle area (rows 0-4, cols 10-14)
+                if (row < 5 && col >= 10 && col <= 14) {
+                  continue; // Skip this position - it's in the 5×5 area
+                }
+                const idx = row * gridSize + col;
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 289) {
+            // Special: 289 - 200 orange, leave clean top-right area for 80 pink + 9 sky blue (89 total)
+            // We need exactly 89 positions empty (289 - 200 = 89)
+            // Leave: rows 0-8, cols 8-16 (9 rows × 9 cols = 81) + row 9, cols 9-16 (1 row × 8 cols = 8) = 89 positions
+            // This ensures a clean top-right corner with no orange dots
+            const allIndices = [];
+            // Fill from bottom, leaving the top-right area empty
+            for (let row = gridSize - 1; row >= 0; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                // Skip rows 0-8, cols 8-16 (9 rows × 9 cols = 81 positions)
+                if (row >= 0 && row <= 8 && col >= 8 && col <= 16) {
+                  continue;
+                }
+                // Skip row 9, cols 9-16 (1 row × 8 cols = 8 positions)
+                if (row === 9 && col >= 9 && col <= 16) {
+                  continue;
+                }
+                // Total skipped: 81 + 8 = 89 positions, leaving exactly 200 available for orange
+                const idx = row * gridSize + col;
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 324) {
+            // Special: 324 - 300 yellow, leave space for 20 orange + 4 green
+            // Pattern: 4 rows (rows 0-3) × 5 columns (cols 13-17) + 1 row (row 4) × 4 columns (cols 14-17)
+            // The 4 green are in a 2x2 square at rows 0-1, cols 16-17
+            // Top part: 4 rows × 5 cols = 20 positions, minus 4 green = 16 orange
+            // Bottom row: 1 row × 4 cols (cols 14-17) = 4 orange (moved 2 positions to the right)
+            // Total = 20 orange
+            const allIndices = [];
+            // Fill from bottom, leaving:
+            // - rows 0-3, cols 13-17 (for 16 orange + 4 green in top part)
+            // - row 4, cols 14-17 (for 4 orange in bottom row, moved 2 positions right)
+            for (let row = gridSize - 1; row >= 0; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                // Skip rows 0-3, cols 13-17 (the top part for orange + green)
+                if (row >= 0 && row <= 3 && col >= 13 && col <= 17) {
+                  continue;
+                }
+                // Skip row 4, cols 14-17 (the bottom row for orange, moved 2 positions right)
+                if (row === 4 && col >= 14 && col <= 17) {
+                  continue;
+                }
+                const idx = row * gridSize + col;
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 484) {
+            // Special: 484 - 400 pink, leave space for 80 pink and 4 (top right 2x2)
+            const allIndices = [];
+            // Fill from bottom, leave space for 80 pink and top right 2x2
+            for (let row = gridSize - 1; row >= 3; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill row 3, but skip top right 2x2 area
+            for (let col = 0; col < gridSize - 2 && allIndices.length < componentValue; col++) {
+              const idx = 3 * gridSize + col;
+              if (!topRightIndices.includes(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 529) {
+            // Special: 529 - 500 yellow, leave space for 20 orange and 9 (top right 3x3)
+            const allIndices = [];
+            // Fill from bottom, leave space for 20 orange and top right 3x3
+            for (let row = gridSize - 1; row >= 2; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill row 2, but skip top right 3x3 area
+            for (let col = 0; col < gridSize - 3 && allIndices.length < componentValue; col++) {
+              const idx = 2 * gridSize + col;
+              if (!topRightIndices.includes(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else if (square === 625) {
+            // Special: 625 - 600 yellow, leave space for 20 orange and 5 (top right 2x2+1)
+            const allIndices = [];
+            // Fill from bottom, leave space for 20 orange and top right 5-dot pattern
+            for (let row = gridSize - 1; row >= 2; row--) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill row 2, but skip top right 5-dot pattern area (2x2 + diagonal)
+            for (let col = 0; col < gridSize - 3 && allIndices.length < componentValue; col++) {
+              const idx = 2 * gridSize + col;
+              if (!topRightIndices.includes(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i))
+              .slice(0, componentValue);
+          } else {
+            // Default: start from bottom left
+            const allIndices = getBottomLeftIndices(gridSize, componentValue + onesValue);
+            indicesToFill = allIndices
+              .filter(i => !alreadyFilled.has(i) && !topRightIndices.includes(i))
+              .slice(0, componentValue);
+          }
+        } else if (isTensPlace && components.length === 3) {
+          // Tens place in 3-digit number
+          if (square === 144) {
+            // Special: 144 - 40 green as 4 rows of 10, in rows 2-5
+            // Place in rows 2-5, left 10 columns
+            const allIndices = [];
+            // Fill 4 rows of 10, starting at row 2
+            for (let row = 2; row < 6 && row < gridSize; row++) {
+              for (let col = 0; col < 10 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 169) {
+            // Special: 169 - 60 purple to the left of the 9, fill all 60
+            const allIndices = [];
+            // Fill area to the left of top right 3x3, and below
+            // Start from top rows, left side
+            for (let row = 0; row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 225) {
+            // Special: 225 - 20 orange in a 5×5 rectangle (5 columns × 5 rows)
+            // Fill only the first 4 columns (cols 10-13) × 5 rows (rows 0-4) = 20 orange dots
+            // Leave the rightmost column (col 14) black for now (will turn blue on 3rd click)
+            // Position: rows 0-4, cols 10-13 (4 columns × 5 rows = 20 dots)
+            // These stay attached in the grid, NOT separated like the 6 purple dots
+            const allIndices = [];
+            // Create 5 rows of 4 dots each (4 columns × 5 rows = 20 dots)
+            // Only fill cols 10-13, leaving col 14 black (will be blue on 3rd click)
+            for (let row = 0; row < 5 && row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 10; col < 14 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                // Don't include topRightIndices (the 5 blue dots in col 14) or already filled
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 289) {
+            // Special: 289 - 80 pink, fill the top-right area we left empty, excluding the 9 sky blue (3×3)
+            // The area we left empty: rows 0-8, cols 8-16 (81 positions) + row 9, cols 9-16 (8 positions) = 89 positions
+            // The 9 sky blue dots are in rows 0-2, cols 14-16 (3×3 in top-right)
+            // Fill 89 - 9 = 80 pink dots in the top-right area
+            const allIndices = [];
+            // Fill rows 0-8, cols 8-16 (excluding the 9 cyan in rows 0-2, cols 14-16)
+            for (let row = 0; row < 9 && row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 8; col < 17 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                // Exclude the 9 sky blue dots (rows 0-2, cols 14-16) and already filled dots
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill row 9, cols 9-16 (excluding any overlaps)
+            for (let col = 9; col < 17 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 9 * gridSize + col;
+              // Exclude already filled dots
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 324) {
+            // Special: 324 - 20 orange in pattern: 4 rows × 5 cols (top) + 1 row × 4 cols (bottom)
+            // The 4 green are in a 2x2 square at rows 0-1, cols 16-17 (top-right corner)
+            // Top part: 4 rows (rows 0-3) × 5 columns (cols 13-17) = 20 positions, minus 4 green = 16 orange
+            // Bottom row: 1 row (row 4) × 4 columns (cols 14-17) = 4 orange (moved 2 positions to the right)
+            // Total = 20 orange
+            const allIndices = [];
+            // Fill top part: rows 0-3, cols 13-17 (excluding the 2x2 green)
+            for (let row = 0; row < 4 && row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 13; col < 18 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                // Exclude the 4 green dots (2x2 at rows 0-1, cols 16-17) and already filled dots
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Fill bottom row: row 4, cols 14-17 (moved 2 positions to the right)
+            for (let col = 14; col < 18 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 4 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 361) {
+            // Special: 361 - 60 purple exactly as specified:
+            // Row 0: 1 yellow (col 11) + 7 purple (cols 12-18, but red is at col 18, so cols 12-17 = 6 purple, col 18 = red)
+            // Actually: Row 0 has 7 purple + 1 red, so if red is at col 18, then cols 12-17 = 6 purple... 
+            // Let me interpret: Row 0 has 7 purple dots in the purple section, plus 1 red = 8 total in that section
+            // Row 1: 1 yellow (col 11) + 8 purple (cols 12-18, but only 7 columns, so maybe cols 11-18 with yellow at 11?)
+            // Actually, re-reading: "the first as yellow and then it has 7 purple dot and one red dot"
+            // So row 0: yellow + 7 purple + 1 red
+            // If red is at col 18, and we have 7 purple before it: cols 11-17 = 1 yellow + 7 purple, col 18 = red
+            // Row 1: yellow + 8 purple = cols 11 (yellow) + cols 12-18 (7 purple, but they said 8...)
+            // Maybe: Row 1: col 11 (yellow) + cols 12-19 (8 purple) but col 19 doesn't exist in 19×19
+            // Let me assume: Row 0: col 11 (yellow) + cols 12-18 (7 purple + 1 red at 18)
+            // Row 1: col 11 (yellow) + cols 12-18 (8 purple, but only 7 columns available)
+            // I think the pattern might be: Row 0: col 11 (yellow) + cols 12-18 (7 purple + 1 red)
+            // Row 1: col 10 (yellow) + cols 11-18 (8 purple)
+            // Rows 2-5: cols 11-18 (8 purple each)
+            // Row 6: cols 12-18 (7 purple)
+            // Row 7: cols 13-18 (6 purple)
+            // Let me implement based on the description more literally
+            const allIndices = [];
+            // Row 0: 1 yellow (col 11) + 7 purple (cols 12-17) + 1 red (col 18) - red excluded here
+            // Row 1: 1 yellow (col 11) + 8 purple (cols 12-18, but only 7 available, so cols 12-18)
+            // Actually, let me count: if row 1 has 8 purple and we start at col 12, we need cols 12-19, but only have 12-18
+            // So maybe: Row 1: col 10 (yellow) + cols 11-18 (8 purple)
+            // Row 0: col 11 (yellow) + cols 12-17 (6 purple) + col 18 (red) = but that's 6 purple, not 7
+            // Let me try: Row 0: col 11 (yellow) + cols 12-18 (7 positions: 6 purple + 1 red)
+            // But they said 7 purple, so maybe: Row 0: col 10 (yellow) + cols 11-17 (7 purple) + col 18 (red)
+            // Row 1: col 10 (yellow) + cols 11-18 (8 purple)
+            // Rows 2-5: cols 11-18 (8 purple each)
+            // Row 6: cols 12-18 (7 purple)
+            // Row 7: cols 13-18 (6 purple)
+            // Let me implement this pattern
+            // Row 0: col 10 (yellow) + cols 11-17 (7 purple) + col 18 (red, excluded)
+            for (let col = 11; col < 18 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 0 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            // Row 1: col 10 (yellow) + cols 11-18 (8 purple)
+            for (let col = 11; col < 19 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 1 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            // Rows 2-5: cols 11-18 (8 purple each)
+            for (let row = 2; row < 6 && row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 11; col < 19 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            // Row 6: cols 12-18 (7 purple)
+            for (let col = 12; col < 19 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 6 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            // Row 7: cols 13-18 (6 purple)
+            for (let col = 13; col < 19 && col < gridSize && allIndices.length < componentValue; col++) {
+              const idx = 7 * gridSize + col;
+              if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                allIndices.push(idx);
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 441) {
+            // Special: 441 - 40 as 4 rows of 10 (4x10 rectangle) in top left corner, offset
+            // Place in top 4 rows, left 10 columns, starting from column 0 (top left corner)
+            const allIndices = [];
+            // 4 rows of 10, starting from top left (row 0, col 0)
+            for (let row = 0; row < 4 && row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 0; col < 10 && col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 484) {
+            // Special: 484 - 80 pink, fill all 80 dots
+            const allIndices = [];
+            // Fill all available spaces except top right 2x2 (for 4)
+            for (let row = 0; row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 529) {
+            // Special: 529 - 20 orange, fill all 20 dots
+            const allIndices = [];
+            // Fill all available spaces except top right 3x3 (for 9)
+            for (let row = 0; row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 625) {
+            // Special: 625 - 20 orange, fill all 20 dots
+            const allIndices = [];
+            // Fill all available spaces except top right 5-dot pattern
+            for (let row = 0; row < gridSize && allIndices.length < componentValue; row++) {
+              for (let col = 0; col < gridSize && allIndices.length < componentValue; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else {
+            // Other 3-digit: around/separating the ones place
+            indicesToFill = getIndicesAroundOnes(gridSize, componentValue, topRightIndices, alreadyFilled);
+          }
+        } else if (isTensPlace && components.length === 2) {
+          // Tens place in 2-digit number: upper left area (for 49, this is the 40)
+          if (square === 25) {
+            // Special: 25 - 20 orange in first 4 columns (cols 0-3, rows 0-4), leaving 5 black (col 4, rows 0-4)
+            const allIndices = [];
+            // Fill 4 columns × 5 rows = 20 orange dots (cols 0-3, rows 0-4)
+            // Leave col 4 (rightmost column) for 5 blue dots
+            for (let row = 0; row < 5 && row < gridSize; row++) {
+              for (let col = 0; col < 4 && col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 36) {
+            // Special: 36 - 30 yellow, fill all 30 dots, leaving space for 6 (top right triangle)
+            const allIndices = [];
+            // Fill all available spaces except top right triangle pattern
+            // Collect all indices first, then slice
+            for (let row = 0; row < gridSize; row++) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else if (square === 49) {
+            // Special: 49 - 40 orange, fill all 40 dots, leaving space for 9 (top right 3x3)
+            const allIndices = [];
+            // Fill all available spaces except top right 3x3
+            // Collect all indices first, then slice
+            for (let row = 0; row < gridSize; row++) {
+              for (let col = 0; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!topRightIndices.includes(idx) && !alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
+            }
+            indicesToFill = allIndices.slice(0, componentValue);
+          } else {
+            indicesToFill = getUpperLeftIndices(gridSize, componentValue, topRightIndices, alreadyFilled);
+          }
+        } else {
+          // Fallback: fill remaining empty spaces
+          for (let i = 0; i < circles.length && indicesToFill.length < componentValue; i++) {
+            if (!alreadyFilled.has(i) && !topRightIndices.includes(i)) {
+              indicesToFill.push(i);
+            }
+          }
+        }
+        
+        // Fill the indices (only fill as many as needed)
+        const filledCount = { count: 0 };
+        indicesToFill.slice(0, componentValue).forEach(i => {
+          const c = circles[i];
+          // Only fill if not already filled
+          if (!alreadyFilled.has(i)) {
+            c.classList.remove(...COLOR_CLASSES);
+            c.classList.add(color);
+            filledCount.count++;
+            
+            // For 225, make sure blue dots (ones place) appear on top
+            if (square === 225 && isOnesPlace && color === 'blue') {
+              c.style.zIndex = '20';
+              c.style.position = 'relative';
+            }
+            
+            // For 256, separate the 6 purple dots from the main grid
+            if (square === 256 && isOnesPlace && color === 'purple') {
+              // Hide the original circle in the grid (remove it from the visual grid)
+              c.style.visibility = 'hidden';
+              
+              // Check if we've already created a separated circle for this index
+              const existingSeparated = separatedCircles.find(sc => {
+                const scRow = parseInt(sc.dataset.originalRow);
+                const scCol = parseInt(sc.dataset.originalCol);
+                return scRow === Math.floor(i / gridSize) && scCol === (i % gridSize);
+              });
+              
+              if (!existingSeparated) {
+                // Create a new circle positioned to the right and up, separated from the main grid
+                const separatedCircle = document.createElement('div');
+                separatedCircle.className = 'circle purple';
+                separatedCircle.style.position = 'absolute';
+                separatedCircle.style.zIndex = '10';
+                const row = Math.floor(i / gridSize);
+                const col = i % gridSize;
+                separatedCircle.dataset.originalRow = row;
+                separatedCircle.dataset.originalCol = col;
+                // Position to the right and up from where the original circle was in the top-right corner
+                // Move right: original column position + small gap (1.2 circle widths) for subtle separation
+                // Move up: original row position - small offset (0.3 circle height) for subtle separation
+                separatedCircle.style.left = `calc(var(--circle-total) * ${col} + 1.2 * var(--circle-total))`;
+                separatedCircle.style.top = `calc(var(--circle-total) * ${row} - 0.3 * var(--circle-total))`;
+                separatedCircle.style.display = 'block';
+                separatedCircle.style.visibility = 'visible';
+                separatedCircle.style.opacity = '1';
+                grid.appendChild(separatedCircle);
+                separatedCircles.push(separatedCircle);
+              }
+            }
+            
+            // For 225, separate the entire 5×5 rectangle (20 orange + 5 black) from the main grid
+            // On second click: 20 orange dots (cols 10-13, rows 0-4) are separated and filled
+            // Also create the 5 black dots in the separated position (col 14, rows 0-4)
+            if (square === 225 && isTensPlace && color === 'orange') {
+              const row = Math.floor(i / gridSize);
+              const col = i % gridSize;
+              
+              // Only process dots that are in the 5×5 area (rows 0-4, cols 10-14)
+              if (row >= 0 && row < 5 && col >= 10 && col <= 14) {
+                // Hide the original circle in the grid (remove it from the visual grid)
+                c.style.visibility = 'hidden';
+                
+                // Check if we've already created a separated circle for this index
+                const existingSeparated = separatedCircles.find(sc => {
+                  const scRow = parseInt(sc.dataset.originalRow);
+                  const scCol = parseInt(sc.dataset.originalCol);
+                  return scRow === row && scCol === col;
+                });
+                
+                if (!existingSeparated) {
+                  // Create a new circle positioned to the right and up, separated from the main grid
+                  const separatedCircle = document.createElement('div');
+                  separatedCircle.className = 'circle orange';
+                  separatedCircle.style.position = 'absolute';
+                  separatedCircle.style.zIndex = '5'; // Lower z-index than blue dots
+                  separatedCircle.dataset.originalRow = row;
+                  separatedCircle.dataset.originalCol = col;
+                  // Position to the right and up from where the original circle was
+                  // Symmetric offset: same distance right and up for balanced separation
+                  separatedCircle.style.left = `calc(var(--circle-total) * ${col} + 0.5 * var(--circle-total))`;
+                  separatedCircle.style.top = `calc(var(--circle-total) * ${row} - 0.5 * var(--circle-total))`;
+                  separatedCircle.style.display = 'block';
+                  separatedCircle.style.visibility = 'visible';
+                  separatedCircle.style.opacity = '1';
+                  grid.appendChild(separatedCircle);
+                  separatedCircles.push(separatedCircle);
+                }
+              }
+            }
+            
+            // For 225, also separate the 5 blue dots (ones place) in the separated 5×5 rectangle
+            // The blue dots should replace the 5 black separated dots in col 14 (rightmost column)
+            if (square === 225 && isOnesPlace && color === 'blue') {
+              const row = Math.floor(i / gridSize);
+              const col = i % gridSize;
+              
+              // Only process dots that are in the rightmost column (col 14) of the 5×5 area (rows 0-4)
+              if (row >= 0 && row < 5 && col === 14) {
+                // Hide the original circle in the grid (remove it from the visual grid)
+                c.style.visibility = 'hidden';
+                
+                // Check if we've already created a separated circle for this index (should be a black one from second click)
+                const existingSeparated = separatedCircles.find(sc => {
+                  const scRow = parseInt(sc.dataset.originalRow);
+                  const scCol = parseInt(sc.dataset.originalCol);
+                  return scRow === row && scCol === col;
+                });
+                
+                if (existingSeparated) {
+                  // If already existing (the black separated dot from second click), just update its color and z-index
+                  existingSeparated.classList.remove(...COLOR_CLASSES);
+                  existingSeparated.classList.add('blue');
+                  existingSeparated.style.zIndex = '20'; // Higher z-index to appear on top
+                } else {
+                  // Should not happen, but create it if somehow missing
+                  const separatedCircle = document.createElement('div');
+                  separatedCircle.className = 'circle blue';
+                  separatedCircle.style.position = 'absolute';
+                  separatedCircle.style.zIndex = '20'; // Higher z-index to appear on top
+                  separatedCircle.dataset.originalRow = row;
+                  separatedCircle.dataset.originalCol = col;
+                  // Position to the right and up from where the original circle was
+                  // Same offset as the orange dots so they form the complete 5×5 rectangle
+                  separatedCircle.style.left = `calc(var(--circle-total) * ${col} + 0.5 * var(--circle-total))`;
+                  separatedCircle.style.top = `calc(var(--circle-total) * ${row} - 0.5 * var(--circle-total))`;
+                  separatedCircle.style.display = 'block';
+                  separatedCircle.style.visibility = 'visible';
+                  separatedCircle.style.opacity = '1';
+                  grid.appendChild(separatedCircle);
+                  separatedCircles.push(separatedCircle);
+                }
+              }
+            }
+          }
+        });
+        
+        // For 225, after filling all 20 orange dots on second click, hide the original 5 black dots and create them in separated position
+        if (square === 225 && isTensPlace && filledCount.count === componentValue) {
+          // All 20 orange dots filled, now hide the original 5 black dots and create them in separated position
+          for (let blackRow = 0; blackRow < 5; blackRow++) {
+            const blackCol = 14; // Rightmost column of the 5×5
+            const blackIdx = blackRow * gridSize + blackCol;
+            
+            // Hide the original black circle in the grid
+            if (circles[blackIdx]) {
+              circles[blackIdx].style.visibility = 'hidden';
+            }
+            
+            // Check if we've already created this separated black circle
+            const existingBlack = separatedCircles.find(sc => {
+              return parseInt(sc.dataset.originalRow) === blackRow && parseInt(sc.dataset.originalCol) === blackCol;
+            });
+            
+            if (!existingBlack) {
+              const separatedBlackCircle = document.createElement('div');
+              separatedBlackCircle.className = 'circle'; // Black (no color class)
+              separatedBlackCircle.style.position = 'absolute';
+              separatedBlackCircle.style.zIndex = '5';
+              separatedBlackCircle.dataset.originalRow = blackRow;
+              separatedBlackCircle.dataset.originalCol = blackCol;
+              separatedBlackCircle.style.left = `calc(var(--circle-total) * ${blackCol} + 0.5 * var(--circle-total))`;
+              separatedBlackCircle.style.top = `calc(var(--circle-total) * ${blackRow} - 0.5 * var(--circle-total))`;
+              separatedBlackCircle.style.display = 'block';
+              separatedBlackCircle.style.visibility = 'visible';
+              separatedBlackCircle.style.opacity = '1';
+              grid.appendChild(separatedBlackCircle);
+              separatedCircles.push(separatedBlackCircle);
+            }
+          }
+        }
+        
+        clickCount++;
+        const currentTotal = components.slice(0, clickCount).reduce((a, b) => a + b, 0);
+        speakNumber(currentTotal);
+      } else {
+        // Reset
+        circles.forEach(c => {
+          c.classList.remove(...COLOR_CLASSES);
+          // For 256 and 225, make hidden circles visible again on reset
+          if (square === 256 || square === 225) {
+            c.style.visibility = '';
+          }
+        });
+        // Remove separated circles on reset
+        separatedCircles.forEach(sc => {
+          if (sc.parentNode) {
+            sc.parentNode.removeChild(sc);
+          }
+        });
+        separatedCircles.length = 0;
+        clickCount = 0;
+        speakNumber(0);
+      }
+  });
+  
+  return section;
+}
+
+// Generate squares from 5^2 to 25^2
+const moreSquaresContainer = document.getElementById('moreSquares');
+if (moreSquaresContainer) {
+  // Replace existing 25 section
+  const existing25Section = document.querySelector('#square-25')?.closest('.set');
+  if (existing25Section) {
+    const newSection = generateSquare(5);
+    existing25Section.replaceWith(newSection);
+  }
+
+  // Generate remaining squares from 6^2 to 25^2
+  for (let n = 6; n <= 25; n++) {
+    moreSquaresContainer.appendChild(generateSquare(n));
+  }
+}
+</script>
+
+</body>
+</html>
+
