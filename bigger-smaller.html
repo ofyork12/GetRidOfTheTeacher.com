@@ -1,4 +1,4 @@
-{
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -792,12 +792,13 @@
     /* Triangle outline using SVG for precise positioning */
     .game-option.stack-ten .triangle-svg {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
       pointer-events: none;
       z-index: 2;
+      overflow: visible;
     }
     .game-option.stack-ten.correct .triangle-svg {
       z-index: 2; /* Below green circle */
@@ -884,22 +885,53 @@
       transition: none !important;
       box-sizing: border-box;
     }
-    /* For 6, adjust circle position - it's too low */
-    .game-option.stack-six.correct::before {
-      transform: translate(-50%, -45%); /* Move up slightly */
+    /* For 5, move the green circle down to better center around the circles */
+    .game-option.stack-five.correct::before {
+      transform: translate(-50%, -35%); /* Moved down more to better center the circles */
     }
-    /* For 10, use a larger circle border (like other numbers) - no fill, no text */
+    /* For 6, center the green circle perfectly around the 6 purple dots */
+    /* Move the circle down to center it on the 6 dots */
+    .game-option.stack-six.correct::before {
+      transform: translate(-50%, -36%); /* Moved down a little bit more to perfectly center around the 6 dots */
+      width: 130px; /* Slightly larger to ensure it doesn't touch */
+      height: 130px;
+      min-width: 130px;
+      min-height: 130px;
+      max-width: 130px;
+      max-height: 130px;
+    }
+    /* For 8, make green circle larger so it doesn't touch the circles */
+    .game-option.stack-eight.correct::before {
+      width: 140px;
+      height: 140px;
+      min-width: 140px;
+      min-height: 140px;
+      max-width: 140px;
+      max-height: 140px;
+    }
+    /* For 9, make green circle larger so it doesn't touch the circles */
+    .game-option.stack-nine.correct::before {
+      width: 140px;
+      height: 140px;
+      min-width: 140px;
+      min-height: 140px;
+      max-width: 140px;
+      max-height: 140px;
+    }
+    /* For 10, center the green circle to encompass both the triangle and red dots */
+    /* Move the circle up a little bit so it goes around both */
     .game-option.stack-ten.correct::before {
-      width: 150px;
-      height: 150px;
-      min-width: 150px;
-      min-height: 150px;
-      max-width: 150px;
-      max-height: 150px;
+      width: 205px; /* A little smaller */
+      height: 205px;
+      min-width: 205px;
+      min-height: 205px;
+      max-width: 205px;
+      max-height: 205px;
       border: 6px solid #00ff00;
       background: transparent; /* No fill */
       border-radius: 50% !important;
       z-index: 3; /* Above triangle, below comparison symbol */
+      transform: translate(-50%, -44%); /* Moved up a little bit more */
     }
     .game-option.incorrect::before {
       content: '';
@@ -1199,7 +1231,36 @@ function pickVoice(langCode) {
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
 
-  const langGroup = voices.filter(v => v.lang && v.lang.startsWith(LANGUAGE_HINTS[langCode] || langCode));
+  const langHint = LANGUAGE_HINTS[langCode] || langCode;
+  
+  // For Chinese, try to find a good Chinese voice
+  if (langCode === "zh") {
+    // Try to find Chinese voices, prefer zh-CN
+    const chineseVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("zh-CN") || v.lang.startsWith("zh") || v.lang.includes("Chinese"))
+    );
+    if (chineseVoices.length > 0) {
+      // Prefer zh-CN voices
+      const cnVoice = chineseVoices.find(v => v.lang.startsWith("zh-CN"));
+      if (cnVoice) return cnVoice;
+      return chineseVoices[0];
+    }
+  }
+  
+  // For Vietnamese, try to find a good Vietnamese voice
+  if (langCode === "vi") {
+    const vietnameseVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("vi-VN") || v.lang.startsWith("vi") || v.lang.includes("Vietnamese"))
+    );
+    if (vietnameseVoices.length > 0) {
+      // Prefer vi-VN voices
+      const vnVoice = vietnameseVoices.find(v => v.lang.startsWith("vi-VN"));
+      if (vnVoice) return vnVoice;
+      return vietnameseVoices[0];
+    }
+  }
+  
+  const langGroup = voices.filter(v => v.lang && v.lang.startsWith(langHint));
   if (langGroup.length) return langGroup[0];
 
   const fallbacks = [
@@ -1240,16 +1301,33 @@ function speakNumber(count) {
     const utterance = new SpeechSynthesisUtterance(words[count]);
     utterance.rate = 1.15;
     utterance.pitch = 1;
+    utterance.volume = 0.7; // 70% volume
+    // Set the language code explicitly for better pronunciation
+    utterance.lang = LANGUAGE_HINTS[currentLang] || currentLang;
     if (preferredVoice) utterance.voice = preferredVoice;
     requestAnimationFrame(() => {
-      window.speechSynthesis.speak(utterance);
-      if (dualLang.has(currentLang) && currentLang !== "en" && englishVoice) {
-        const englishWord = NUMBER_WORDS.en[count];
-        const follow = new SpeechSynthesisUtterance(englishWord);
-        follow.rate = 1.15;
-        follow.pitch = 1;
-        follow.voice = englishVoice;
-        window.speechSynthesis.speak(follow);
+      const isDual = dualLang.has(currentLang);
+      const isEnglish = currentLang === 'en';
+      
+      if (isEnglish) {
+        // English only - say it once
+        window.speechSynthesis.speak(utterance);
+      } else if (isDual) {
+        // Dual mode: native first, then English
+        utterance.onend = () => {
+          const englishWord = NUMBER_WORDS.en[count];
+          const follow = new SpeechSynthesisUtterance(englishWord);
+          follow.rate = 1.15;
+          follow.pitch = 1;
+          follow.volume = 0.7; // 70% volume
+          follow.lang = LANGUAGE_HINTS.en || "en";
+          if (englishVoice) follow.voice = englishVoice;
+          window.speechSynthesis.speak(follow);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Native only
+        window.speechSynthesis.speak(utterance);
       }
       if (shouldPlayTone) {
         playTone(count);
@@ -1521,33 +1599,69 @@ function createNumberGroup(num) {
       circle.className = `circle ${pos} ${colorClass}`;
       container.appendChild(circle);
     });
-    // Add triangle outline using SVG polygon
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.className = 'triangle-svg';
-    svg.setAttribute('viewBox', '-10 -5 120 115'); // Extended viewBox to accommodate larger triangle
-    svg.setAttribute('preserveAspectRatio', 'none');
-    svg.setAttribute('overflow', 'visible');
+    // NO TRIANGLE BEHIND THE 10 DOTS - just the dots themselves
+    // The triangle will be added separately when correct answer is selected
     
-    // Triangle points - made bigger (coordinates in viewBox space):
-    // Top point: higher up to make triangle bigger
-    //   - X: 35 (37.5% of 100, adjusted for viewBox)
-    //   - Y: 4 (8% of 100, adjusted for viewBox, moved up from 14% to make triangle bigger)
-    // Bottom left: extend beyond left edge
-    //   - X: -6 (extend beyond left edge)
-    //   - Y: 116 (extend below bottom)
-    // Bottom right: extend beyond right edge
-    //   - X: 116 (extend beyond right edge)
-    //   - Y: 116 (extend below bottom)
-    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    polygon.setAttribute('points', '35,4 -6,116 116,116');
-    polygon.setAttribute('fill', 'none');
-    polygon.setAttribute('stroke', '#fff');
-    polygon.setAttribute('stroke-width', '4');
-    polygon.setAttribute('stroke-linejoin', 'round');
-    polygon.setAttribute('stroke-linecap', 'round');
-    svg.appendChild(polygon);
+    // ADD A WHITE TRIANGLE AROUND THE RED DOTS - made with 3 line segments
+    // Center the triangle on the violet dot (the center dot - middle dot of row 3)
+    // Row 3 middle dot is at: left: 50% (center), bottom: triangle-rise * 2
+    // Container height is: triangle-rise * 3 + circle-total
+    // Row 3 is approximately 2/3 down from top, which is about 33% from top
+    // Center both triangle and circle on this exact point
+    const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    triangle.className = 'triangle-svg';
+    triangle.style.position = 'absolute';
+    // Center horizontally and vertically on the violet dot (center of 10 dots)
+    triangle.style.left = '50%';
+    triangle.style.left = '50.5%'; // Moved left by half the previous adjustment
+    triangle.style.top = '41%'; // Moved down a touch more
+    triangle.style.transform = 'translate(-50%, -50%)';
+    triangle.style.width = '150px'; // A little smaller
+    triangle.style.height = '130px'; // Equilateral: height = width * sqrt(3)/2 ≈ 130
+    triangle.style.zIndex = '2'; // Above dots, below green circle
+    triangle.setAttribute('viewBox', '0 0 150 130');
+    triangle.setAttribute('preserveAspectRatio', 'none');
+    triangle.setAttribute('overflow', 'visible');
     
-    container.appendChild(svg);
+    // Create equilateral triangle using 3 line segments
+    // Top point: (75, 0) - center top
+    // Bottom left: (0, 130) - bottom left
+    // Bottom right: (150, 130) - bottom right
+    
+    // Line 1: Top to bottom left
+    const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line1.setAttribute('x1', '75');
+    line1.setAttribute('y1', '0');
+    line1.setAttribute('x2', '0');
+    line1.setAttribute('y2', '130');
+    line1.setAttribute('stroke', '#fff');
+    line1.setAttribute('stroke-width', '3'); // Thinner lines
+    line1.setAttribute('stroke-linecap', 'round');
+    triangle.appendChild(line1);
+    
+    // Line 2: Top to bottom right
+    const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line2.setAttribute('x1', '75');
+    line2.setAttribute('y1', '0');
+    line2.setAttribute('x2', '150');
+    line2.setAttribute('y2', '130');
+    line2.setAttribute('stroke', '#fff');
+    line2.setAttribute('stroke-width', '3'); // Thinner lines
+    line2.setAttribute('stroke-linecap', 'round');
+    triangle.appendChild(line2);
+    
+    // Line 3: Bottom left to bottom right
+    const line3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line3.setAttribute('x1', '0');
+    line3.setAttribute('y1', '130');
+    line3.setAttribute('x2', '150');
+    line3.setAttribute('y2', '130');
+    line3.setAttribute('stroke', '#fff');
+    line3.setAttribute('stroke-width', '3'); // Thinner lines
+    line3.setAttribute('stroke-linecap', 'round');
+    triangle.appendChild(line3);
+    
+    container.appendChild(triangle);
   }
   
   return container;
@@ -1614,6 +1728,11 @@ function displayQuestionGroup() {
     row.className = 'game-question-row';
     row.dataset.questionIndex = currentGroupStart + index;
     
+    // Add extra spacing if this question contains a 10 (but not too much)
+    if (q.num1 === 10 || q.num2 === 10) {
+      row.style.marginBottom = 'clamp(60px, 10vw, 90px)'; // Moderate extra space when 10 is present
+    }
+    
     const option1 = createNumberGroup(q.num1);
     const option2 = createNumberGroup(q.num2);
     const symbol = document.createElement('div');
@@ -1634,30 +1753,101 @@ function displayQuestionGroup() {
   });
   
   updateScore();
+  
+  // Scroll to first unanswered question when group is displayed
+  setTimeout(() => {
+    const firstRow = groupEl.querySelector('.game-question-row');
+    if (firstRow) {
+      firstRow.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      });
+    }
+  }, 100);
 }
 
-const ENCOURAGING_MESSAGES = [
-  "Terrific!", "Good job!", "Way to go!", "That's right!", "Nice!", "Excellent!", 
-  "Fabulous!", "Perfect!", "Awesome!", "Great!", "Super!", "Wonderful!", 
-  "Fantastic!", "Brilliant!", "Amazing!", "Outstanding!", "Marvelous!", 
-  "Splendid!", "Bravo!", "Well done!", "You got it!", "Yes!", "Right on!",
-  "Perfect!", "Nice work!", "Keep it up!", "You're doing great!", "That's it!"
-];
+const ENCOURAGING_MESSAGES = {
+  en: [
+    "Terrific!", "Good job!", "Way to go!", "That's right!", "Nice!", "Excellent!", 
+    "Fabulous!", "Perfect!", "Awesome!", "Great!", "Super!", "Wonderful!", 
+    "Fantastic!", "Brilliant!", "Amazing!", "Outstanding!", "Marvelous!", 
+    "Splendid!", "Bravo!", "Well done!", "You got it!", "Yes!", "Right on!",
+    "Nice work!", "Keep it up!", "You're doing great!", "That's it!", "Incredible!",
+    "Phenomenal!", "Spectacular!", "Magnificent!", "Tremendous!", "Stupendous!"
+  ],
+  vi: [
+    "Tuyệt vời!", "Làm tốt lắm!", "Tiếp tục phát huy!", "Đúng rồi!", "Tốt!", "Xuất sắc!",
+    "Tuyệt diệu!", "Hoàn hảo!", "Tuyệt!", "Tuyệt vời!", "Siêu!", "Tuyệt vời!",
+    "Tuyệt vời!", "Thông minh!", "Tuyệt vời!", "Xuất sắc!", "Tuyệt vời!",
+    "Tuyệt vời!", "Hoan hô!", "Làm tốt!", "Bạn đã làm được!", "Đúng!", "Chính xác!",
+    "Làm tốt!", "Tiếp tục!", "Bạn đang làm rất tốt!", "Đúng rồi!", "Không thể tin được!",
+    "Phi thường!", "Ngoạn mục!", "Tuyệt vời!", "To lớn!", "Kỳ diệu!"
+  ],
+  zh: [
+    "太棒了!", "做得好!", "继续努力!", "对了!", "很好!", "优秀!",
+    "太棒了!", "完美!", "太棒了!", "太好了!", "超级!", "太棒了!",
+    "太棒了!", "聪明!", "太棒了!", "出色!", "太棒了!",
+    "太棒了!", "好!", "做得好!", "你做到了!", "是的!", "正确!",
+    "做得好!", "继续!", "你做得很好!", "就是这样!", "难以置信!",
+    "非凡!", "壮观!", "宏伟!", "巨大!", "惊人!"
+  ],
+  ko: [
+    "훌륭해요!", "잘했어요!", "계속하세요!", "맞아요!", "좋아요!", "훌륭해요!",
+    "멋져요!", "완벽해요!", "대단해요!", "훌륭해요!", "최고!", "훌륭해요!",
+    "환상적이에요!", "똑똑해요!", "놀라워요!", "뛰어나요!", "훌륭해요!",
+    "훌륭해요!", "만세!", "잘했어요!", "해냈어요!", "맞아요!", "정확해요!",
+    "잘했어요!", "계속하세요!", "정말 잘하고 있어요!", "그거예요!", "믿을 수 없어요!",
+    "비범해요!", "장관이에요!", "웅장해요!", "엄청나요!", "놀라워요!"
+  ],
+  es: [
+    "¡Terrífico!", "¡Buen trabajo!", "¡Sigue así!", "¡Correcto!", "¡Bien!", "¡Excelente!",
+    "¡Fabuloso!", "¡Perfecto!", "¡Increíble!", "¡Genial!", "¡Súper!", "¡Maravilloso!",
+    "¡Fantástico!", "¡Brillante!", "¡Asombroso!", "¡Destacado!", "¡Maravilloso!",
+    "¡Espléndido!", "¡Bravo!", "¡Bien hecho!", "¡Lo lograste!", "¡Sí!", "¡Correcto!",
+    "¡Buen trabajo!", "¡Sigue así!", "¡Lo estás haciendo genial!", "¡Eso es!", "¡Increíble!",
+    "¡Fenomenal!", "¡Espectacular!", "¡Magnífico!", "¡Tremendo!", "¡Estupendo!"
+  ],
+  fr: [
+    "Terrifique!", "Bon travail!", "Continue!", "C'est ça!", "Bien!", "Excellent!",
+    "Fabuleux!", "Parfait!", "Génial!", "Super!", "Super!", "Merveilleux!",
+    "Fantastique!", "Brillant!", "Incroyable!", "Remarquable!", "Merveilleux!",
+    "Splendide!", "Bravo!", "Bien joué!", "Tu l'as fait!", "Oui!", "C'est ça!",
+    "Bon travail!", "Continue!", "Tu t'en sors très bien!", "C'est ça!", "Incroyable!",
+    "Phénoménal!", "Spectaculaire!", "Magnifique!", "Énorme!", "Stupéfiant!"
+  ],
+  hi: [
+    "शानदार!", "अच्छा काम!", "जारी रखें!", "सही है!", "अच्छा!", "उत्कृष्ट!",
+    "शानदार!", "पूर्ण!", "बहुत बढ़िया!", "महान!", "सुपर!", "अद्भुत!",
+    "शानदार!", "चतुर!", "अद्भुत!", "उत्कृष्ट!", "अद्भुत!",
+    "शानदार!", "शाबाश!", "अच्छा किया!", "आपने कर दिया!", "हाँ!", "सही!",
+    "अच्छा काम!", "जारी रखें!", "आप बहुत अच्छा कर रहे हैं!", "यही है!", "अविश्वसनीय!",
+    "असाधारण!", "शानदार!", "भव्य!", "विशाल!", "अद्भुत!"
+  ]
+};
 
 let usedMessages = [];
 
 function getRandomEncouragement() {
-  if (usedMessages.length >= ENCOURAGING_MESSAGES.length) {
+  const langMessages = ENCOURAGING_MESSAGES[currentLang] || ENCOURAGING_MESSAGES.en;
+  const enMessages = ENCOURAGING_MESSAGES.en;
+  
+  if (usedMessages.length >= langMessages.length) {
     usedMessages = []; // Reset if we've used them all
   }
-  let available = ENCOURAGING_MESSAGES.filter(m => !usedMessages.includes(m));
+  let available = langMessages.filter(m => !usedMessages.includes(m));
   if (available.length === 0) {
     usedMessages = [];
-    available = ENCOURAGING_MESSAGES;
+    available = langMessages;
   }
   const message = available[Math.floor(Math.random() * available.length)];
   usedMessages.push(message);
-  return message;
+  
+  // Return both the message in selected language and English
+  const enIndex = langMessages.indexOf(message);
+  const enMessage = enIndex >= 0 && enIndex < enMessages.length ? enMessages[enIndex] : message;
+  
+  return { native: message, english: enMessage };
 }
 
 // Play wrong answer sound
@@ -1702,29 +1892,74 @@ function handleAnswer(answer, question, rowIndex) {
     // Show varied encouraging feedback
     const feedbackEl = document.getElementById(`feedback-${rowIndex}`);
     if (feedbackEl) {
-      const message = getRandomEncouragement();
-      feedbackEl.textContent = message + " ✓";
+      const messages = getRandomEncouragement();
+      feedbackEl.textContent = messages.native + " ✓";
       feedbackEl.classList.add('show', 'correct');
       
-      // Speak the encouragement - softer, more pleasing voice
+      // Speak the encouragement
       if ("speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance(message);
-        utterance.rate = 0.9; // Slower, softer
-        utterance.pitch = 0.95; // Lower pitch, less forceful
-        utterance.volume = 0.8; // Slightly quieter
-        // Try to find a more pleasant voice
-        const voices = window.speechSynthesis.getVoices();
-        const pleasantVoices = voices.filter(v => 
-          (v.name.includes('Female') || v.name.includes('Woman') || v.name.includes('Samantha') || 
-           v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Zira')) &&
-          v.lang.startsWith('en')
-        );
-        if (pleasantVoices.length > 0) {
-          utterance.voice = pleasantVoices[0];
-        } else if (preferredVoice) {
-          utterance.voice = preferredVoice;
+        const isDual = dualLang.has(currentLang);
+        const isEnglish = currentLang === 'en';
+        
+        if (isEnglish) {
+          // English only - say it once
+          const enUtterance = new SpeechSynthesisUtterance(messages.native);
+          enUtterance.rate = 0.9;
+          enUtterance.pitch = 0.95;
+          enUtterance.volume = 0.7; // 70% volume
+          const voices = window.speechSynthesis.getVoices();
+          const pleasantVoices = voices.filter(v => 
+            (v.name.includes('Female') || v.name.includes('Woman') || v.name.includes('Samantha') || 
+             v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Zira')) &&
+            v.lang.startsWith('en')
+          );
+          if (pleasantVoices.length > 0) {
+            enUtterance.voice = pleasantVoices[0];
+          } else if (englishVoice) {
+            enUtterance.voice = englishVoice;
+          }
+          window.speechSynthesis.speak(enUtterance);
+        } else if (isDual) {
+          // Dual mode: native first, then English
+          const nativeUtterance = new SpeechSynthesisUtterance(messages.native);
+          nativeUtterance.rate = 0.9;
+          nativeUtterance.pitch = 0.95;
+          nativeUtterance.volume = 0.7; // 70% volume
+          if (preferredVoice) {
+            nativeUtterance.voice = preferredVoice;
+          }
+          
+          nativeUtterance.onend = () => {
+            const enUtterance = new SpeechSynthesisUtterance(messages.english);
+            enUtterance.rate = 0.9;
+            enUtterance.pitch = 0.95;
+            enUtterance.volume = 0.7; // 70% volume
+            const voices = window.speechSynthesis.getVoices();
+            const pleasantVoices = voices.filter(v => 
+              (v.name.includes('Female') || v.name.includes('Woman') || v.name.includes('Samantha') || 
+               v.name.includes('Karen') || v.name.includes('Victoria') || v.name.includes('Zira')) &&
+              v.lang.startsWith('en')
+            );
+            if (pleasantVoices.length > 0) {
+              enUtterance.voice = pleasantVoices[0];
+            } else if (englishVoice) {
+              enUtterance.voice = englishVoice;
+            }
+            window.speechSynthesis.speak(enUtterance);
+          };
+          
+          window.speechSynthesis.speak(nativeUtterance);
+        } else {
+          // Native only
+          const nativeUtterance = new SpeechSynthesisUtterance(messages.native);
+          nativeUtterance.rate = 0.9;
+          nativeUtterance.pitch = 0.95;
+          nativeUtterance.volume = 0.7; // 70% volume
+          if (preferredVoice) {
+            nativeUtterance.voice = preferredVoice;
+          }
+          window.speechSynthesis.speak(nativeUtterance);
         }
-        window.speechSynthesis.speak(utterance);
       }
     }
     
@@ -1740,6 +1975,29 @@ function handleAnswer(answer, question, rowIndex) {
     
     answeredInGroup++;
     updateScore();
+    
+    // Auto-scroll to next unanswered question
+    setTimeout(() => {
+      const allRows = document.querySelectorAll('.game-question-row');
+      let nextUnansweredRow = null;
+      
+      // Find the next unanswered question
+      for (let i = 0; i < allRows.length; i++) {
+        if (allRows[i].dataset.answered !== 'true') {
+          nextUnansweredRow = allRows[i];
+          break;
+        }
+      }
+      
+      // Scroll to the next unanswered question
+      if (nextUnansweredRow) {
+        nextUnansweredRow.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 500); // Small delay to let the feedback show first
     
     // Auto-advance to next group after 10 questions
     if (answeredInGroup >= 10) {
@@ -1789,7 +2047,7 @@ function handleAnswer(answer, question, rowIndex) {
         const utterance = new SpeechSynthesisUtterance("Try again");
         utterance.rate = 0.9;
         utterance.pitch = 0.95;
-        utterance.volume = 0.8;
+        utterance.volume = 0.7; // 70% volume
         const voices = window.speechSynthesis.getVoices();
         const pleasantVoices = voices.filter(v => 
           (v.name.includes('Female') || v.name.includes('Woman') || v.name.includes('Samantha') || 
@@ -1931,41 +2189,70 @@ function updateInstructionsLanguage() {
 }
 
 // Game mode toggle
+// Function to start the game
+function startGame() {
+  gameMode = true;
+  const practiceMode = document.getElementById('practiceMode');
+  const gameArea = document.getElementById('gameArea');
+  const instructions = document.getElementById('instructions');
+  const gameToggle = document.getElementById('gameToggle');
+  
+  if (practiceMode) practiceMode.classList.add('hide');
+  if (gameArea) gameArea.classList.add('show');
+  if (instructions) instructions.classList.add('show');
+  if (gameToggle) gameToggle.textContent = '← Back to Practice';
+  
+  // Initialize game
+  allQuestions = generateAllQuestions();
+  currentQuestionIndex = 0;
+  currentGroupStart = 0;
+  scoreCorrect = 0;
+  scoreTotal = 0;
+  answeredInGroup = 0;
+  usedMessages = []; // Reset encouraging messages
+  
+  displayQuestionGroup();
+  updateInstructionsLanguage();
+}
+
+// Function to go back to practice
+function goToPractice() {
+  gameMode = false;
+  const practiceMode = document.getElementById('practiceMode');
+  const gameArea = document.getElementById('gameArea');
+  const instructions = document.getElementById('instructions');
+  const gameToggle = document.getElementById('gameToggle');
+  
+  if (practiceMode) practiceMode.classList.remove('hide');
+  if (gameArea) gameArea.classList.remove('show');
+  if (instructions) instructions.classList.remove('show');
+  if (gameToggle) gameToggle.textContent = '🎮 Play Game';
+  
+  if (autoAdvanceTimeout) {
+    clearTimeout(autoAdvanceTimeout);
+    autoAdvanceTimeout = null;
+  }
+}
+
+// Auto-start game when page loads (so clicking from home page goes directly to game)
+// Use setTimeout to ensure all functions are defined and DOM is ready
+window.addEventListener('load', () => {
+  // Check if we're coming from index.html or if this is a direct navigation
+  // Always start the game unless we're explicitly in practice mode
+  if (!gameMode) {
+    setTimeout(() => {
+      startGame();
+    }, 100);
+  }
+});
+
 const gameToggle = document.getElementById('gameToggle');
 if (gameToggle) {
   gameToggle.addEventListener('click', () => {
-    gameMode = !gameMode;
-    const practiceMode = document.getElementById('practiceMode');
-    const gameArea = document.getElementById('gameArea');
-    const instructions = document.getElementById('instructions');
-    
     if (gameMode) {
-      if (practiceMode) practiceMode.classList.add('hide');
-      if (gameArea) gameArea.classList.add('show');
-      if (instructions) instructions.classList.add('show');
-      gameToggle.textContent = '← Back to Practice';
-      
-      // Initialize game
-      allQuestions = generateAllQuestions();
-      currentQuestionIndex = 0;
-      currentGroupStart = 0;
-      scoreCorrect = 0;
-      scoreTotal = 0;
-      answeredInGroup = 0;
-      usedMessages = []; // Reset encouraging messages
-      
-      displayQuestionGroup();
-      updateInstructionsLanguage();
+      goToPractice();
     } else {
-      if (practiceMode) practiceMode.classList.remove('hide');
-      if (gameArea) gameArea.classList.remove('show');
-      if (instructions) instructions.classList.remove('show');
-      gameToggle.textContent = '🎮 Play Game';
-      
-      if (autoAdvanceTimeout) {
-        clearTimeout(autoAdvanceTimeout);
-        autoAdvanceTimeout = null;
-      }
+      startGame();
     }
   });
 }
