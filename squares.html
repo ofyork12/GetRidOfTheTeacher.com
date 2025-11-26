@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -25,7 +25,7 @@
       flex-direction: column;
       align-items: center;
       gap: var(--section-gap);
-      padding: 400px 12px 120px;
+      padding: 40px 12px 120px;
       overflow-x: hidden;
       overflow-y: auto;
       -webkit-tap-highlight-color: transparent;
@@ -48,11 +48,11 @@
     
     /* Number Keyboard - Fixed at top, centered */
     .number-keyboard {
+      display: none; /* Hidden but code kept intact */
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      display: flex;
       gap: 15px;
       background: rgba(0, 0, 0, 0.95);
       padding: 30px 20px;
@@ -183,7 +183,7 @@
         border-width: 2px;
       }
       body {
-        padding-top: 200px;
+        padding-top: 40px;
       }
     }
     
@@ -216,7 +216,7 @@
         border-width: 1.5px;
       }
       body {
-        padding-top: 150px;
+        padding-top: 40px;
       }
     }
     .game-nav-button {
@@ -883,7 +883,7 @@ function pickVoice(langCode) {
   if (langCode === "zh") {
     // Try to find Chinese voices, prefer zh-CN
     const chineseVoices = voices.filter(v => 
-      v.lang && (v.lang.startsWith("zh-CN") || v.lang.startsWith("zh") || v.lang.includes("Chinese"))
+      v.lang && (v.lang.startsWith("zh-CN") || v.lang.startsWith("zh") || v.lang.includes("Chinese") || v.name.includes("Chinese"))
     );
     if (chineseVoices.length > 0) {
       // Prefer zh-CN voices
@@ -896,7 +896,7 @@ function pickVoice(langCode) {
   // For Vietnamese, try to find a good Vietnamese voice
   if (langCode === "vi") {
     const vietnameseVoices = voices.filter(v => 
-      v.lang && (v.lang.startsWith("vi-VN") || v.lang.startsWith("vi") || v.lang.includes("Vietnamese"))
+      v.lang && (v.lang.startsWith("vi-VN") || v.lang.startsWith("vi") || v.lang.includes("Vietnamese") || v.name.includes("Vietnamese"))
     );
     if (vietnameseVoices.length > 0) {
       // Prefer vi-VN voices
@@ -906,31 +906,91 @@ function pickVoice(langCode) {
     }
   }
   
+  // For Korean
+  if (langCode === "ko") {
+    const koreanVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("ko-KR") || v.lang.startsWith("ko") || v.lang.includes("Korean") || v.name.includes("Korean"))
+    );
+    if (koreanVoices.length > 0) {
+      const krVoice = koreanVoices.find(v => v.lang.startsWith("ko-KR"));
+      if (krVoice) return krVoice;
+      return koreanVoices[0];
+    }
+  }
+  
+  // For Hindi
+  if (langCode === "hi") {
+    const hindiVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("hi") || v.lang.includes("Hindi") || v.name.includes("Hindi"))
+    );
+    if (hindiVoices.length > 0) {
+      return hindiVoices[0];
+    }
+  }
+  
+  // For Spanish
+  if (langCode === "es") {
+    const spanishVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("es") || v.lang.includes("Spanish") || v.name.includes("Spanish"))
+    );
+    if (spanishVoices.length > 0) {
+      return spanishVoices[0];
+    }
+  }
+  
+  // For French
+  if (langCode === "fr") {
+    const frenchVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("fr") || v.lang.includes("French") || v.name.includes("French"))
+    );
+    if (frenchVoices.length > 0) {
+      return frenchVoices[0];
+    }
+  }
+  
+  // Try exact language match
   const langGroup = voices.filter(v => v.lang && v.lang.startsWith(langHint));
   if (langGroup.length) return langGroup[0];
 
-  const fallbacks = [
-    "Microsoft Aria Online (Natural) - English (United States)",
-    "Google US English",
-    "Google UK English Female",
-    "Microsoft Zira Desktop - English (United States)"
-  ];
-
-  for (const name of fallbacks) {
-    const voice = voices.find(v => v.name === name);
-    if (voice) return voice;
+  // Fallback to English voices (most mobile browsers have English)
+  const englishVoices = voices.filter(v => v.lang && v.lang.startsWith("en"));
+  if (englishVoices.length > 0) {
+    return englishVoices[0];
   }
-  return voices.find(v => v.lang && v.lang.startsWith("en")) || voices[0];
+  
+  // Last resort - use any available voice
+  return voices[0];
 }
 
 function initVoices(lang = currentLang) {
-  preferredVoice = pickVoice(lang);
-  englishVoice = pickVoice("en");
+  // On mobile, voices might not be loaded immediately - wait a bit
+  setTimeout(() => {
+    preferredVoice = pickVoice(lang);
+    englishVoice = pickVoice("en");
+    
+    // If no voice found, try again after a delay (mobile browsers load voices asynchronously)
+    if (!preferredVoice && lang !== "en") {
+      setTimeout(() => {
+        preferredVoice = pickVoice(lang);
+        if (!preferredVoice) {
+          // Fallback to English if language voice not available
+          preferredVoice = pickVoice("en");
+        }
+      }, 500);
+    }
+  }, 100);
 }
 
 if ("speechSynthesis" in window) {
-  window.speechSynthesis.onvoiceschanged = initVoices;
+  // Mobile browsers often need multiple attempts to load voices
+  window.speechSynthesis.onvoiceschanged = () => {
+    initVoices();
+    // Also try initializing after a delay for mobile
+    setTimeout(initVoices, 500);
+  };
   initVoices();
+  // Also try after page load for mobile browsers
+  setTimeout(initVoices, 1000);
 }
 
 function speakNumber(count) {
@@ -938,6 +998,11 @@ function speakNumber(count) {
   if (count < 0 || count >= words.length) return;
   if (!("speechSynthesis" in window)) return;
   lastSpokenCount = count;
+  
+  // Re-initialize voices if not set (important for mobile)
+  if (!preferredVoice || !englishVoice) {
+    initVoices(currentLang);
+  }
   
   // Cancel any ongoing speech
   try {
@@ -951,7 +1016,11 @@ function speakNumber(count) {
   utterance.pitch = 1;
   utterance.volume = 1.0; // Full volume for mobile
   utterance.lang = LANGUAGE_HINTS[currentLang] || currentLang;
-  if (preferredVoice) utterance.voice = preferredVoice;
+  
+  // Use preferred voice if available, otherwise let browser choose
+  if (preferredVoice) {
+    utterance.voice = preferredVoice;
+  }
   
   const isDual = dualLang.has(currentLang);
   const isEnglish = currentLang === 'en';
@@ -970,12 +1039,21 @@ function speakNumber(count) {
         follow.pitch = 1;
         follow.volume = 1.0; // Full volume for mobile
         follow.lang = LANGUAGE_HINTS.en || "en";
-        if (englishVoice) follow.voice = englishVoice;
+        if (englishVoice) {
+          follow.voice = englishVoice;
+        }
         window.speechSynthesis.speak(follow);
       };
       window.speechSynthesis.speak(utterance);
     } else {
-      // Native only
+      // Native only - if no voice found, try English as fallback
+      if (!preferredVoice && currentLang !== "en") {
+        // Fallback to English if language voice not available
+        utterance.lang = "en";
+        if (englishVoice) {
+          utterance.voice = englishVoice;
+        }
+      }
       window.speechSynthesis.speak(utterance);
     }
   } catch(e) {
@@ -983,11 +1061,16 @@ function speakNumber(count) {
     // Try again after a short delay if immediate call fails
     setTimeout(() => {
       try {
+        // Try with English fallback if original failed
+        if (currentLang !== "en") {
+          utterance.lang = "en";
+          if (englishVoice) utterance.voice = englishVoice;
+        }
         window.speechSynthesis.speak(utterance);
       } catch(e2) {
         console.error('Speech synthesis retry error:', e2);
       }
-    }, 50);
+    }, 100);
   }
 }
 
