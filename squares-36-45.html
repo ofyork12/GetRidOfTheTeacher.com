@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Squares Game</title>
+  <title>Squares 36²-45²</title>
   <style>
     :root {
       --circle-size: clamp(30px, 6vw, 60px); /* Smaller for up to 625 dots */
@@ -663,19 +663,15 @@
   <div class="game-navigation">
     <a href="index.html" class="game-nav-button">← Go Back</a>
     <a href="bigger-smaller.html" class="game-nav-button">Bigger/Smaller</a>
-    <a href="squares.html" class="game-nav-button active">Squares 1-25</a>
+    <a href="squares.html" class="game-nav-button">Squares 1-25</a>
     <a href="squares-26-35.html" class="game-nav-button">Squares 26-35</a>
-    <a href="squares-36-45.html" class="game-nav-button">Squares 36-45</a>
+    <a href="squares-36-45.html" class="game-nav-button active">Squares 36-45</a>
   </div>
 
   <div class="controls" role="group" aria-label="Language selector">
     <div class="lang-group">
       <button data-lang="en" class="active">English</button>
       <button class="dual" data-mode="sound">Sound</button>
-    </div>
-    <div class="lang-group">
-      <button data-english-voice="male" class="active">English Male</button>
-      <button data-english-voice="female">English Female</button>
     </div>
     <div class="lang-group">
       <button data-lang="vi">Tiếng Việt</button>
@@ -702,70 +698,6 @@
       <button class="dual" data-dual="hi">हिन्दी English</button>
     </div>
   </div>
-
-  <section class="set" data-square="1" data-base="1">
-    <h2>1²</h2>
-    <div class="single-circle">
-      <div class="circle" id="one"></div>
-    </div>
-    <div class="answer-display" data-answer="1"></div>
-  </section>
-
-  <section class="set" data-square="4" data-base="2">
-    <h2>2²</h2>
-    <div class="grid-two" id="four">
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-    </div>
-    <div class="answer-display" data-answer="4"></div>
-  </section>
-
-  <section class="set" data-square="9" data-base="3">
-    <h2>3²</h2>
-    <div class="grid-three" id="nine">
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-    </div>
-    <div class="answer-display" data-answer="9"></div>
-  </section>
-
-  <section class="set" data-square="16" data-base="4">
-    <h2>4²</h2>
-    <div class="grid-four" id="sixteen">
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-      <div class="circle"></div>
-    </div>
-    <div class="answer-display" data-answer="16"></div>
-  </section>
-
-  <section class="set" data-square="25" data-base="5">
-    <h2>5²</h2>
-    <div class="grid-five" id="square-25"></div>
-    <div class="answer-display" data-answer="25"></div>
-  </section>
 
   <div id="moreSquares"></div>
 
@@ -908,7 +840,6 @@ const LANGUAGE_HINTS = {
 let currentLang = "en";
 let preferredVoice = null;
 let englishVoice = null;
-let englishVoiceGender = "male"; // "male" or "female"
 const dualLang = new Set();
 let lastSpokenCount = 0;
 
@@ -992,110 +923,6 @@ function pickVoice(langCode) {
   const langGroup = voices.filter(v => v.lang && v.lang.startsWith(langHint));
   if (langGroup.length) return langGroup[0];
 
-  // For English, prioritize based on selected gender preference
-  if (langCode === "en") {
-    const englishVoices = voices.filter(v => 
-      v.lang && (v.lang.startsWith("en") || v.lang.includes("English"))
-    );
-    
-    if (englishVoices.length > 0) {
-      const preferFemale = englishVoiceGender === "female";
-      
-      // Helper function to check if voice is female
-      const isFemaleVoice = (v) => {
-        const name = v.name.toLowerCase();
-        return name.includes("female") ||
-               name.includes("zira") ||
-               name.includes("samantha") ||
-               name.includes("karen") ||
-               name.includes("victoria") ||
-               name.includes("susan") ||
-               name.includes("hazel") ||
-               name.includes("linda") ||
-               name.includes("aria") ||
-               name.includes("jenny") ||
-               name.includes("eva") ||
-               name.includes("katy");
-      };
-      
-      // Helper function to check if voice is male
-      const isMaleVoice = (v) => {
-        const name = v.name.toLowerCase();
-        return name.includes("male") ||
-               name.includes("david") ||
-               name.includes("mark") ||
-               name.includes("richard") ||
-               name.includes("james") ||
-               name.includes("guy") ||
-               name.includes("daniel") ||
-               name.includes("thomas");
-      };
-      
-      // Separate voices by gender
-      const femaleVoices = englishVoices.filter(isFemaleVoice);
-      const maleVoices = englishVoices.filter(isMaleVoice);
-      const neutralVoices = englishVoices.filter(v => !isFemaleVoice(v) && !isMaleVoice(v));
-      
-      // Get voices for preferred gender
-      const preferredGenderVoices = preferFemale ? femaleVoices : maleVoices;
-      const otherGenderVoices = preferFemale ? maleVoices : femaleVoices;
-      
-      // Priority 1: Neural/Natural/Premium voices of preferred gender
-      const neuralPreferred = preferredGenderVoices.filter(v => 
-        v.name.toLowerCase().includes("neural") || 
-        v.name.toLowerCase().includes("natural") ||
-        v.name.toLowerCase().includes("premium")
-      );
-      if (neuralPreferred.length > 0) {
-        // Prefer online/cloud voices
-        const onlineNeural = neuralPreferred.find(v => 
-          v.name.toLowerCase().includes("online") ||
-          v.name.toLowerCase().includes("cloud")
-        );
-        if (onlineNeural) return onlineNeural;
-        return neuralPreferred[0];
-      }
-      
-      // Priority 2: Online/Cloud voices of preferred gender
-      const onlinePreferred = preferredGenderVoices.filter(v => 
-        v.name.toLowerCase().includes("online") ||
-        v.name.toLowerCase().includes("cloud") ||
-        v.name.toLowerCase().includes("google")
-      );
-      if (onlinePreferred.length > 0) {
-        return onlinePreferred[0];
-      }
-      
-      // Priority 3: Any voice of preferred gender
-      if (preferredGenderVoices.length > 0) {
-        return preferredGenderVoices[0];
-      }
-      
-      // Priority 4: Neural/Natural voices of other gender (if preferred not available)
-      const neuralOther = otherGenderVoices.filter(v => 
-        v.name.toLowerCase().includes("neural") || 
-        v.name.toLowerCase().includes("natural") ||
-        v.name.toLowerCase().includes("premium")
-      );
-      if (neuralOther.length > 0) {
-        return neuralOther[0];
-      }
-      
-      // Priority 5: Any voice of other gender
-      if (otherGenderVoices.length > 0) {
-        return otherGenderVoices[0];
-      }
-      
-      // Priority 6: Neutral voices
-      if (neutralVoices.length > 0) {
-        return neutralVoices[0];
-      }
-      
-      // Fallback: any English voice
-      return englishVoices[0];
-    }
-  }
-  
   // Fallback to English voices (most mobile browsers have English)
   const englishVoices = voices.filter(v => v.lang && v.lang.startsWith("en"));
   if (englishVoices.length > 0) {
@@ -1178,7 +1005,7 @@ function speakNumber(count) {
       const utterance = new SpeechSynthesisUtterance(words[count]);
       utterance.rate = 1.15;
       utterance.pitch = 1;
-      utterance.volume = 0.5; // 50% volume
+      utterance.volume = 1.0;
       utterance.lang = LANGUAGE_HINTS.en || "en";
       if (preferredVoice) utterance.voice = preferredVoice;
       window.speechSynthesis.speak(utterance);
@@ -1195,7 +1022,7 @@ function speakNumber(count) {
       const nativeUtterance = new SpeechSynthesisUtterance(words[count]);
       nativeUtterance.rate = 1.15;
       nativeUtterance.pitch = 1;
-      nativeUtterance.volume = 0.5; // 50% volume
+      nativeUtterance.volume = 1.0;
       nativeUtterance.lang = LANGUAGE_HINTS[currentLang] || currentLang;
       // Only use voice if it's actually for the target language
       if (nativeVoiceToUse && nativeVoiceToUse.lang && nativeVoiceToUse.lang.startsWith(currentLang === "vi" ? "vi" : (LANGUAGE_HINTS[currentLang] || currentLang).split("-")[0])) {
@@ -1211,7 +1038,7 @@ function speakNumber(count) {
           const englishUtterance = new SpeechSynthesisUtterance(englishWord);
           englishUtterance.rate = 1.15;
           englishUtterance.pitch = 1;
-          englishUtterance.volume = 0.5; // 50% volume
+          englishUtterance.volume = 1.0;
           englishUtterance.lang = LANGUAGE_HINTS.en || "en";
           if (englishVoice) {
             englishUtterance.voice = englishVoice;
@@ -1226,7 +1053,7 @@ function speakNumber(count) {
       const utterance = new SpeechSynthesisUtterance(words[count]);
       utterance.rate = 1.15;
       utterance.pitch = 1;
-      utterance.volume = 0.5; // 50% volume
+      utterance.volume = 1.0;
       utterance.lang = LANGUAGE_HINTS[currentLang] || currentLang;
       
       if (preferredVoice) {
@@ -1250,7 +1077,7 @@ function speakNumber(count) {
         const utterance = new SpeechSynthesisUtterance(englishWord);
         utterance.rate = 1.15;
         utterance.pitch = 1;
-        utterance.volume = 0.5; // 50% volume
+        utterance.volume = 1.0;
         utterance.lang = LANGUAGE_HINTS.en || "en";
         if (englishVoice) utterance.voice = englishVoice;
         window.speechSynthesis.speak(utterance);
@@ -1304,52 +1131,11 @@ function setupGroup(selector, palette) {
   });
 }
 
-// NUMBER 1 – single circle with voice feedback
-const single = document.getElementById("one");
-const section1 = single.closest('.set');
-const answerDisplay1 = section1.querySelector('.answer-display');
-single.addEventListener("click", function() {
-  this.classList.toggle("red");
-  const count = this.classList.contains("red") ? 1 : 0;
-  speakNumber(count);
-  
-  if (count > 0) {
-    // All dots are filled (1 dot), show the answer
-    answerDisplay1.textContent = '1';
-    answerDisplay1.classList.add('show');
-  } else {
-    answerDisplay1.textContent = '';
-    answerDisplay1.classList.remove('show');
-  }
-});
+// No NUMBER 1 handler needed for this page (36-45 only)
 
 // Language controls
 const buttons = Array.from(document.querySelectorAll(".controls button[data-lang]"));
 const dualButtons = Array.from(document.querySelectorAll(".controls button[data-dual]"));
-
-function selectEnglishVoiceGender(gender) {
-  englishVoiceGender = gender;
-  // Reinitialize English voice with new gender preference
-  englishVoice = pickVoice("en");
-  
-  // Update button states
-  const englishVoiceButtons = Array.from(document.querySelectorAll(".controls button[data-english-voice]"));
-  englishVoiceButtons.forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.englishVoice === gender);
-  });
-  
-  // Save to localStorage
-  try {
-    localStorage.setItem('englishVoiceGender', gender);
-  } catch (e) {
-    // localStorage not available, ignore
-  }
-  
-  // If currently speaking English or in dual mode, re-speak the last number
-  if (currentLang === "en" || dualLang.has(currentLang)) {
-    speakNumber(lastSpokenCount);
-  }
-}
 
 function selectLanguage(lang, useDual, silent = false) {
   const isNewSelection = currentLang !== lang || useDual !== dualLang.has(lang);
@@ -1412,29 +1198,11 @@ dualButtons.forEach(btn => {
   btn.addEventListener("touchstart", handleDualLanguageSelect, { passive: true }); // Changed to passive: true to allow pinch
 });
 
-// English voice gender buttons
-const englishVoiceButtons = Array.from(document.querySelectorAll(".controls button[data-english-voice]"));
-englishVoiceButtons.forEach(btn => {
-  const handleEnglishVoiceSelect = (e) => {
-    // Only prevent default if it's a single touch (not pinch gesture)
-    if (e.touches && e.touches.length > 1) {
-      return; // Allow multi-touch gestures (pinch-to-zoom) to proceed
-    }
-    e.preventDefault();
-    e.stopPropagation();
-    selectEnglishVoiceGender(btn.dataset.englishVoice);
-  };
-  btn.addEventListener("click", handleEnglishVoiceSelect);
-  btn.addEventListener("touchstart", handleEnglishVoiceSelect, { passive: true });
-});
-
 // Load saved language preference from localStorage
 let savedLang = "en";
 let savedUseDual = false;
-let savedEnglishVoiceGender = "male";
 try {
   const savedLangValue = localStorage.getItem('selectedLanguage');
-  const savedGenderValue = localStorage.getItem('englishVoiceGender');
   const savedDualValue = localStorage.getItem('useDualLanguage');
   if (savedLangValue) {
     savedLang = savedLangValue;
@@ -1442,19 +1210,13 @@ try {
   if (savedDualValue === 'true') {
     savedUseDual = true;
   }
-  if (savedGenderValue === 'female' || savedGenderValue === 'male') {
-    savedEnglishVoiceGender = savedGenderValue;
-  }
 } catch (e) {
   // localStorage not available, use defaults
 }
 
-// Set English voice gender preference first (before selecting language)
-selectEnglishVoiceGender(savedEnglishVoiceGender);
 selectLanguage(savedLang, savedUseDual, true);
 
-setupGroup("#four .circle", {2: "orange", 3: "yellow", 4: "green"});
-setupGroup("#nine .circle", {2: "orange", 3: "yellow", 4: "green", 5: "blue", 6: "purple", 7: "brown", 8: "pink", 9: "sky"});
+// No setupGroup calls needed for this page (36-45 only)
 
 // Helper function to get top right corner indices for a grid
 function getTopRightCornerIndices(gridSize, count) {
@@ -1588,73 +1350,7 @@ const COLOR_MAP = {
   6: "purple", 7: "brown", 8: "pink", 9: "sky", 10: "red-final"
 };
 
-// NUMBER 16 – two clicks: first 10 red, then 6 purple (triangle in top-right)
-let sixteenClickCount = 0;
-const sixteenCircles = Array.from(document.querySelectorAll("#sixteen .circle"));
-const section16 = sixteenCircles[0].closest('.set');
-const answerDisplay16 = section16.querySelector('.answer-display');
-let clickCount16 = 0;
-const gridSize16 = 4;
-const topRightIndices16 = getTrianglePatternIndices(gridSize16); // 6 dots as triangle
-
-sixteenCircles.forEach(circle => {
-  circle.addEventListener("click", () => {
-    if (sixteenClickCount === 0) {
-      // Fill 10 red dots, excluding the top-right triangle area
-      const alreadyFilled = new Set();
-      sixteenCircles.forEach((c, i) => {
-        if (c.classList.contains("red") || c.classList.contains("purple") || 
-            c.classList.contains("orange") || c.classList.contains("yellow") ||
-            c.classList.contains("green") || c.classList.contains("blue") ||
-            c.classList.contains("brown") || c.classList.contains("pink") ||
-            c.classList.contains("sky") || c.classList.contains("red-final")) {
-          alreadyFilled.add(i);
-        }
-      });
-      
-      // Fill from bottom-left, excluding top-right triangle
-      // Collect all available indices first, then take 10
-      const allIndices = [];
-      for (let row = gridSize16 - 1; row >= 0; row--) {
-        for (let col = 0; col < gridSize16; col++) {
-          const idx = row * gridSize16 + col;
-          if (!topRightIndices16.includes(idx) && !alreadyFilled.has(idx)) {
-            allIndices.push(idx);
-          }
-        }
-      }
-      const indicesToFill = allIndices.slice(0, 10);
-      
-      indicesToFill.forEach(i => {
-        const c = sixteenCircles[i];
-        c.classList.remove(...COLOR_CLASSES);
-        c.classList.add("red");
-      });
-      sixteenClickCount = 1;
-      speakNumber(10);
-    } else if (sixteenClickCount === 1) {
-      // Fill 6 purple dots in triangle pattern in top-right
-      topRightIndices16.forEach(i => {
-        const c = sixteenCircles[i];
-        c.classList.remove(...COLOR_CLASSES);
-        c.classList.add("purple");
-      });
-      sixteenClickCount = 2;
-      speakNumber(16);
-      // All dots are now filled (10 red + 6 purple = 16), show the answer
-      answerDisplay16.textContent = '16';
-      answerDisplay16.classList.add('show');
-    } else {
-      sixteenCircles.forEach(c => {
-        c.classList.remove("red", "purple", ...COLOR_CLASSES);
-      });
-      sixteenClickCount = 0;
-      answerDisplay16.textContent = '';
-      answerDisplay16.classList.remove('show');
-      speakNumber(0);
-    }
-  });
-});
+// No NUMBER 16 handler needed for this page (36-45 only)
 
 // Generate all squares from 5^2 to 25^2
 function generateSquare(n) {
@@ -4726,15 +4422,8 @@ function generateSquare(n) {
 // Generate squares from 5^2 to 25^2
 const moreSquaresContainer = document.getElementById('moreSquares');
 if (moreSquaresContainer) {
-  // Replace existing 25 section
-  const existing25Section = document.querySelector('#square-25')?.closest('.set');
-  if (existing25Section) {
-    const newSection = generateSquare(5);
-    existing25Section.replaceWith(newSection);
-  }
-
-  // Generate squares 6² through 25² only (26-35 and 36-45 are on separate pages)
-  for (let n = 6; n <= 25; n++) {
+  // Generate squares 36² through 45² only
+  for (let n = 36; n <= 45; n++) {
     moreSquaresContainer.appendChild(generateSquare(n));
   }
 }

@@ -411,6 +411,10 @@
       <button class="dual" data-mode="sound">Sound</button>
     </div>
     <div class="lang-group">
+      <button data-english-voice="male" class="active">English Male</button>
+      <button data-english-voice="female">English Female</button>
+    </div>
+    <div class="lang-group">
       <button data-lang="vi">Tiếng Việt</button>
       <button class="dual" data-dual="vi">Tiếng Việt English</button>
     </div>
@@ -573,6 +577,7 @@ const LANGUAGE_HINTS = {
 let currentLang = "en";
 let preferredVoice = null;
 let englishVoice = null;
+let englishVoiceGender = "male"; // "male" or "female"
 const dualLang = new Set();
 let lastSpokenCount = 0;
 const SOUND_MODE = {
@@ -589,20 +594,115 @@ function pickVoice(langCode) {
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return null;
 
-  const langGroup = voices.filter(v => v.lang && v.lang.startsWith(LANGUAGE_HINTS[langCode] || langCode));
+  const langHint = LANGUAGE_HINTS[langCode] || langCode;
+  
+  // For English, prioritize based on selected gender preference
+  if (langCode === "en") {
+    const englishVoices = voices.filter(v => 
+      v.lang && (v.lang.startsWith("en") || v.lang.includes("English"))
+    );
+    
+    if (englishVoices.length > 0) {
+      const preferFemale = englishVoiceGender === "female";
+      
+      // Helper function to check if voice is female
+      const isFemaleVoice = (v) => {
+        const name = v.name.toLowerCase();
+        return name.includes("female") ||
+               name.includes("zira") ||
+               name.includes("samantha") ||
+               name.includes("karen") ||
+               name.includes("victoria") ||
+               name.includes("susan") ||
+               name.includes("hazel") ||
+               name.includes("linda") ||
+               name.includes("aria") ||
+               name.includes("jenny") ||
+               name.includes("eva") ||
+               name.includes("katy");
+      };
+      
+      // Helper function to check if voice is male
+      const isMaleVoice = (v) => {
+        const name = v.name.toLowerCase();
+        return name.includes("male") ||
+               name.includes("david") ||
+               name.includes("mark") ||
+               name.includes("richard") ||
+               name.includes("james") ||
+               name.includes("guy") ||
+               name.includes("daniel") ||
+               name.includes("thomas");
+      };
+      
+      // Separate voices by gender
+      const femaleVoices = englishVoices.filter(isFemaleVoice);
+      const maleVoices = englishVoices.filter(isMaleVoice);
+      const neutralVoices = englishVoices.filter(v => !isFemaleVoice(v) && !isMaleVoice(v));
+      
+      // Get voices for preferred gender
+      const preferredGenderVoices = preferFemale ? femaleVoices : maleVoices;
+      const otherGenderVoices = preferFemale ? maleVoices : femaleVoices;
+      
+      // Priority 1: Neural/Natural/Premium voices of preferred gender
+      const neuralPreferred = preferredGenderVoices.filter(v => 
+        v.name.toLowerCase().includes("neural") || 
+        v.name.toLowerCase().includes("natural") ||
+        v.name.toLowerCase().includes("premium")
+      );
+      if (neuralPreferred.length > 0) {
+        // Prefer online/cloud voices
+        const onlineNeural = neuralPreferred.find(v => 
+          v.name.toLowerCase().includes("online") ||
+          v.name.toLowerCase().includes("cloud")
+        );
+        if (onlineNeural) return onlineNeural;
+        return neuralPreferred[0];
+      }
+      
+      // Priority 2: Online/Cloud voices of preferred gender
+      const onlinePreferred = preferredGenderVoices.filter(v => 
+        v.name.toLowerCase().includes("online") ||
+        v.name.toLowerCase().includes("cloud") ||
+        v.name.toLowerCase().includes("google")
+      );
+      if (onlinePreferred.length > 0) {
+        return onlinePreferred[0];
+      }
+      
+      // Priority 3: Any voice of preferred gender
+      if (preferredGenderVoices.length > 0) {
+        return preferredGenderVoices[0];
+      }
+      
+      // Priority 4: Neural/Natural voices of other gender (if preferred not available)
+      const neuralOther = otherGenderVoices.filter(v => 
+        v.name.toLowerCase().includes("neural") || 
+        v.name.toLowerCase().includes("natural") ||
+        v.name.toLowerCase().includes("premium")
+      );
+      if (neuralOther.length > 0) {
+        return neuralOther[0];
+      }
+      
+      // Priority 5: Any voice of other gender
+      if (otherGenderVoices.length > 0) {
+        return otherGenderVoices[0];
+      }
+      
+      // Priority 6: Neutral voices
+      if (neutralVoices.length > 0) {
+        return neutralVoices[0];
+      }
+      
+      // Fallback: any English voice
+      return englishVoices[0];
+    }
+  }
+  
+  const langGroup = voices.filter(v => v.lang && v.lang.startsWith(langHint));
   if (langGroup.length) return langGroup[0];
 
-  const fallbacks = [
-    "Microsoft Aria Online (Natural) - English (United States)",
-    "Google US English",
-    "Google UK English Female",
-    "Microsoft Zira Desktop - English (United States)"
-  ];
-
-  for (const name of fallbacks) {
-    const voice = voices.find(v => v.name === name);
-    if (voice) return voice;
-  }
   return voices.find(v => v.lang && v.lang.startsWith("en")) || voices[0];
 }
 
@@ -630,6 +730,7 @@ function speakNumber(count) {
     const utterance = new SpeechSynthesisUtterance(words[count]);
     utterance.rate = 1.15;
     utterance.pitch = 1;
+    utterance.volume = 0.35; // 35% volume
     if (preferredVoice) utterance.voice = preferredVoice;
     requestAnimationFrame(() => {
       window.speechSynthesis.speak(utterance);
@@ -638,6 +739,7 @@ function speakNumber(count) {
         const follow = new SpeechSynthesisUtterance(englishWord);
         follow.rate = 1.15;
         follow.pitch = 1;
+        follow.volume = 0.35; // 35% volume
         follow.voice = englishVoice;
         window.speechSynthesis.speak(follow);
       }
@@ -704,6 +806,30 @@ const cycleSoundMode = () => {
 
 soundToggle.addEventListener("click", cycleSoundMode);
 
+function selectEnglishVoiceGender(gender) {
+  englishVoiceGender = gender;
+  // Reinitialize English voice with new gender preference
+  englishVoice = pickVoice("en");
+  
+  // Update button states
+  const englishVoiceButtons = Array.from(document.querySelectorAll(".controls button[data-english-voice]"));
+  englishVoiceButtons.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.englishVoice === gender);
+  });
+  
+  // Save to localStorage
+  try {
+    localStorage.setItem('englishVoiceGender', gender);
+  } catch (e) {
+    // localStorage not available, ignore
+  }
+  
+  // If currently speaking English or in dual mode, re-speak the last number
+  if (currentLang === "en" || dualLang.has(currentLang)) {
+    speakNumber(lastSpokenCount);
+  }
+}
+
 function selectLanguage(lang, useDual, silent = false) {
   const isNewSelection = currentLang !== lang || useDual !== dualLang.has(lang);
   currentLang = lang;
@@ -766,22 +892,37 @@ dualButtons.forEach(btn => {
   });
 });
 
+// English voice gender buttons
+const englishVoiceButtons = Array.from(document.querySelectorAll(".controls button[data-english-voice]"));
+englishVoiceButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    selectEnglishVoiceGender(btn.dataset.englishVoice);
+  });
+});
+
 // Load saved language preference from localStorage
 let savedLang = "en";
 let savedUseDual = false;
+let savedEnglishVoiceGender = "male";
 try {
   const savedLangValue = localStorage.getItem('selectedLanguage');
   const savedDualValue = localStorage.getItem('useDualLanguage');
+  const savedGenderValue = localStorage.getItem('englishVoiceGender');
   if (savedLangValue) {
     savedLang = savedLangValue;
   }
   if (savedDualValue === 'true') {
     savedUseDual = true;
   }
+  if (savedGenderValue === 'female' || savedGenderValue === 'male') {
+    savedEnglishVoiceGender = savedGenderValue;
+  }
 } catch (e) {
   // localStorage not available, use defaults
 }
 
+// Set English voice gender preference first (before selecting language)
+selectEnglishVoiceGender(savedEnglishVoiceGender);
 selectLanguage(savedLang, savedUseDual, true);
 
 setupGroup("#two .circle",   {2: "orange"});
