@@ -156,67 +156,67 @@
     
     @media screen and (max-width: 768px) {
       .number-keyboard {
-        padding: 20px 15px;
-        gap: 12px;
+        padding: 15px 10px;
+        gap: 8px;
       }
       .keyboard-key {
-        min-width: 160px;
-        min-height: 160px;
-        padding: 20px;
+        min-width: 100px;
+        min-height: 100px;
+        padding: 12px;
       }
       .keyboard-key::before {
-        width: 150px;
-        height: 150px;
-        border-radius: 15px;
-        border-width: 3px;
+        width: 90px;
+        height: 90px;
+        border-radius: 12px;
+        border-width: 2px;
       }
       .keyboard-pattern {
-        width: 130px;
-        height: 130px;
+        width: 75px;
+        height: 75px;
       }
       .keyboard-number {
-        font-size: 90px;
+        font-size: 60px;
       }
       .keyboard-dot {
-        width: 38px;
-        height: 38px;
-        border-width: 3px;
+        width: 24px;
+        height: 24px;
+        border-width: 2px;
       }
       body {
-        padding-top: 300px;
+        padding-top: 200px;
       }
     }
     
     @media screen and (max-width: 480px) {
       .number-keyboard {
-        padding: 15px 10px;
-        gap: 8px;
+        padding: 10px 5px;
+        gap: 5px;
       }
       .keyboard-key {
-        min-width: 140px;
-        min-height: 140px;
-        padding: 15px;
+        min-width: 70px;
+        min-height: 70px;
+        padding: 8px;
       }
       .keyboard-key::before {
-        width: 130px;
-        height: 130px;
-        border-radius: 12px;
-        border-width: 3px;
-      }
-      .keyboard-pattern {
-        width: 110px;
-        height: 110px;
-      }
-      .keyboard-number {
-        font-size: 75px;
-      }
-      .keyboard-dot {
-        width: 32px;
-        height: 32px;
+        width: 65px;
+        height: 65px;
+        border-radius: 10px;
         border-width: 2px;
       }
+      .keyboard-pattern {
+        width: 55px;
+        height: 55px;
+      }
+      .keyboard-number {
+        font-size: 45px;
+      }
+      .keyboard-dot {
+        width: 18px;
+        height: 18px;
+        border-width: 1.5px;
+      }
       body {
-        padding-top: 250px;
+        padding-top: 150px;
       }
     }
     .game-nav-button {
@@ -929,40 +929,54 @@ function speakNumber(count) {
   if (!("speechSynthesis" in window)) return;
   lastSpokenCount = count;
   
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.resume();
+  // Ensure speech synthesis is ready (important for mobile)
+  try {
+    window.speechSynthesis.cancel();
+    // Resume on mobile browsers
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+  } catch(e) {
+    // Ignore errors
+  }
+  
   const utterance = new SpeechSynthesisUtterance(words[count]);
   utterance.rate = 1.15;
   utterance.pitch = 1;
-  utterance.volume = 0.5; // 50% volume
+  utterance.volume = 1.0; // Full volume for mobile
   utterance.lang = LANGUAGE_HINTS[currentLang] || currentLang;
   if (preferredVoice) utterance.voice = preferredVoice;
   
   const isDual = dualLang.has(currentLang);
   const isEnglish = currentLang === 'en';
   
-  requestAnimationFrame(() => {
-    if (isEnglish) {
-      // English only - say it once
-      window.speechSynthesis.speak(utterance);
-    } else if (isDual) {
-      // Dual mode: native first, then English
-      utterance.onend = () => {
-        const englishWord = NUMBER_WORDS.en[count];
-        const follow = new SpeechSynthesisUtterance(englishWord);
-        follow.rate = 1.15;
-        follow.pitch = 1;
-        follow.volume = 0.5; // 50% volume
-        follow.lang = LANGUAGE_HINTS.en || "en";
-        if (englishVoice) follow.voice = englishVoice;
-        window.speechSynthesis.speak(follow);
-      };
-      window.speechSynthesis.speak(utterance);
-    } else {
-      // Native only
-      window.speechSynthesis.speak(utterance);
+  // Use setTimeout instead of requestAnimationFrame for better mobile compatibility
+  setTimeout(() => {
+    try {
+      if (isEnglish) {
+        // English only - say it once
+        window.speechSynthesis.speak(utterance);
+      } else if (isDual) {
+        // Dual mode: native first, then English
+        utterance.onend = () => {
+          const englishWord = NUMBER_WORDS.en[count];
+          const follow = new SpeechSynthesisUtterance(englishWord);
+          follow.rate = 1.15;
+          follow.pitch = 1;
+          follow.volume = 1.0; // Full volume for mobile
+          follow.lang = LANGUAGE_HINTS.en || "en";
+          if (englishVoice) follow.voice = englishVoice;
+          window.speechSynthesis.speak(follow);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Native only
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch(e) {
+      console.error('Speech synthesis error:', e);
     }
-  });
+  }, 10);
 }
 
 function setupGroup(selector, palette) {
@@ -4441,16 +4455,13 @@ function playKeyboardTone(num) {
 const keyboardContainer = document.getElementById('numberKeyboard');
 if (keyboardContainer) {
   // Dot size for keyboard - calculated to fill the 9 pattern (3x3 grid)
-  // Pattern area is 160px × 160px
-  // For 3x3 grid to fill the space: 3 dots + 4 gaps (2 edge + 2 between) = 160px
-  // Formula: 3*dotSize + 4*edgeSpacing = 160
-  // To maximize dot size while maintaining small gaps, use edgeSpacing = 4px
-  // Then: 3*dotSize = 160 - 16 = 144, so dotSize = 48px
-  // Center-to-center spacing = dotSize + edgeSpacing = 48 + 4 = 52px
-  const keyboardDotSize = 48;
-  const keyboardPatternSize = 160; // Size of pattern container
-  const keyboardEdgeSpacing = 4; // Small gap for visual separation
-  const keyboardCenterSpacing = keyboardDotSize + keyboardEdgeSpacing; // 52px center-to-center
+  // Pattern area varies by screen size: 160px desktop, 75px tablet, 55px mobile
+  const isMobile = window.innerWidth <= 480;
+  const isTablet = window.innerWidth <= 768 && window.innerWidth > 480;
+  const keyboardPatternSize = isMobile ? 55 : (isTablet ? 75 : 160);
+  const keyboardDotSize = isMobile ? 18 : (isTablet ? 24 : 48);
+  const keyboardEdgeSpacing = isMobile ? 1.5 : (isTablet ? 2 : 4);
+  const keyboardCenterSpacing = keyboardDotSize + keyboardEdgeSpacing;
   
   // Color map for each number
   const colorMap = {
@@ -4563,11 +4574,24 @@ if (keyboardContainer) {
     key.appendChild(numberSpan);
     
     // Add click handler to speak the number and play tone
-    const handleKeyPress = (e) => {
+    const handleKeyPress = async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      
+      // Ensure audio context is resumed (required for mobile)
+      if (keyboardAudioCtx) {
+        if (keyboardAudioCtx.state === 'suspended') {
+          try {
+            await keyboardAudioCtx.resume();
+          } catch (err) {
+            console.log("Could not resume audio context:", err);
+          }
+        }
+        playKeyboardTone(num);
+      }
+      
+      // Speak the number (speech synthesis works better with direct call on mobile)
       speakNumber(num);
-      playKeyboardTone(num);
     };
     
     key.addEventListener('click', handleKeyPress);
