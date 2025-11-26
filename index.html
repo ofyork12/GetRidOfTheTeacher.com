@@ -28,8 +28,17 @@
       align-items: center;
       gap: var(--section-gap);
       padding: 40px 12px 120px;
+      overflow-x: hidden;
       overflow-y: auto;
       -webkit-tap-highlight-color: transparent;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    html {
+      overflow-x: hidden;
+      width: 100%;
+      position: relative;
     }
     .set {
       display: flex;
@@ -37,7 +46,10 @@
       align-items: center;
       gap: 12px;
       width: 100%;
+      max-width: 100%;
       text-align: center;
+      box-sizing: border-box;
+      padding: 0 8px;
     }
     .set > :last-child {
       margin: 0 auto;
@@ -338,6 +350,44 @@
       background: #fff;
       color: #000;
     }
+    /* Mobile and tablet responsiveness */
+    @media screen and (max-width: 768px) {
+      body {
+        padding: 20px 8px 100px;
+      }
+      .set {
+        padding: 0 4px;
+      }
+      .set h2 {
+        font-size: clamp(18px, 4vw, 28px);
+      }
+    }
+    
+    @media screen and (max-width: 480px) {
+      body {
+        padding: 15px 4px 90px;
+      }
+      .set {
+        padding: 0 2px;
+      }
+      :root {
+        --circle-size: clamp(60px, 12vw, 150px);
+        --section-gap: clamp(30px, 6vw, 70px);
+      }
+    }
+    
+    /* Prevent text selection issues on mobile */
+    * {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* Allow text selection for numbers and text content */
+    .circle-number, h2, .answer-display {
+      -webkit-user-select: text;
+      user-select: text;
+    }
   </style>
 </head>
 <body>
@@ -355,27 +405,27 @@
     </div>
     <div class="lang-group">
       <button data-lang="vi">Tiếng Việt</button>
-      <button class="dual" data-dual="vi">Tiếng Việt + English</button>
+      <button class="dual" data-dual="vi">Tiếng Việt English</button>
     </div>
     <div class="lang-group">
       <button data-lang="zh">中文</button>
-      <button class="dual" data-dual="zh">中文 + English</button>
+      <button class="dual" data-dual="zh">中文 English</button>
     </div>
     <div class="lang-group">
       <button data-lang="ko">한국어</button>
-      <button class="dual" data-dual="ko">한국어 + English</button>
+      <button class="dual" data-dual="ko">한국어 English</button>
     </div>
     <div class="lang-group">
       <button data-lang="es">Español</button>
-      <button class="dual" data-dual="es">Español + English</button>
+      <button class="dual" data-dual="es">Español English</button>
     </div>
     <div class="lang-group">
       <button data-lang="fr">Français</button>
-      <button class="dual" data-dual="fr">Français + English</button>
+      <button class="dual" data-dual="fr">Français English</button>
     </div>
     <div class="lang-group">
       <button data-lang="hi">हिन्दी</button>
-      <button class="dual" data-dual="hi">हिन्दी + English</button>
+      <button class="dual" data-dual="hi">हिन्दी English</button>
     </div>
   </div>
 
@@ -665,6 +715,14 @@ function selectLanguage(lang, useDual, silent = false) {
     btn.classList.toggle("active", active);
   });
 
+  // Save to localStorage for persistence across pages
+  try {
+    localStorage.setItem('selectedLanguage', lang);
+    localStorage.setItem('useDualLanguage', useDual ? 'true' : 'false');
+  } catch (e) {
+    // localStorage not available, ignore
+  }
+
   if (!silent && isNewSelection) {
     speakNumber(lastSpokenCount);
   }
@@ -701,7 +759,23 @@ dualButtons.forEach(btn => {
   });
 });
 
-selectLanguage("en", false, true);
+// Load saved language preference from localStorage
+let savedLang = "en";
+let savedUseDual = false;
+try {
+  const savedLangValue = localStorage.getItem('selectedLanguage');
+  const savedDualValue = localStorage.getItem('useDualLanguage');
+  if (savedLangValue) {
+    savedLang = savedLangValue;
+  }
+  if (savedDualValue === 'true') {
+    savedUseDual = true;
+  }
+} catch (e) {
+  // localStorage not available, use defaults
+}
+
+selectLanguage(savedLang, savedUseDual, true);
 
 setupGroup("#two .circle",   {2: "orange"});
 setupGroup("#three .circle", {2: "orange", 3: "yellow"});
