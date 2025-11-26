@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, minimum-scale=0.1, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -32,13 +32,11 @@
       -webkit-overflow-scrolling: touch;
       width: 100%;
       box-sizing: border-box;
-      touch-action: pan-x pan-y pinch-zoom; /* Allow pinch-to-zoom */
     }
     html {
       overflow-x: hidden;
       width: 100%;
       position: relative;
-      touch-action: pan-x pan-y pinch-zoom; /* Allow pinch-to-zoom */
     }
     .game-navigation {
       display: flex;
@@ -629,7 +627,6 @@
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
-      touch-action: pan-x pan-y pinch-zoom; /* Allow pinch-to-zoom everywhere */
     }
     
     /* Allow text selection for numbers and text content */
@@ -638,9 +635,14 @@
       user-select: text;
     }
     
-    /* Ensure interactive elements allow pinch-zoom */
-    .circle, .keyboard-key, button {
-      touch-action: pan-x pan-y pinch-zoom; /* Allow pinch-to-zoom on all elements */
+    /* CRITICAL: Allow pinch-to-zoom on ALL elements - use !important to override any conflicts */
+    html, body, * {
+      touch-action: auto !important;
+    }
+    
+    /* Buttons and interactive elements should still be clickable */
+    .controls button, .keyboard-key, .circle {
+      -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
     }
   </style>
 </head>
@@ -1086,16 +1088,25 @@ function selectLanguage(lang, useDual, silent = false) {
   }
 }
 
+// Add both click and touch handlers for mobile compatibility
 buttons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  const handleLanguageSelect = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     selectLanguage(btn.dataset.lang, false);
-  });
+  };
+  btn.addEventListener("click", handleLanguageSelect);
+  btn.addEventListener("touchstart", handleLanguageSelect, { passive: false });
 });
 
 dualButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
+  const handleDualLanguageSelect = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     selectLanguage(btn.dataset.dual, true);
-  });
+  };
+  btn.addEventListener("click", handleDualLanguageSelect);
+  btn.addEventListener("touchstart", handleDualLanguageSelect, { passive: false });
 });
 
 // Load saved language preference from localStorage
