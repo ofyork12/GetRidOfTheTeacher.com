@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, minimum-scale=0.1, user-scalable=yes">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -256,8 +256,8 @@
     }
     .set h2 {
       margin: 0;
-      font-size: 300px; /* Fallback for browsers without clamp() support */
-      font-size: clamp(200px, 25vw, 400px);
+      font-size: 225px; /* Fallback for browsers without clamp() support - reduced by 25% */
+      font-size: clamp(150px, 18.75vw, 300px); /* Reduced by 25% */
       font-weight: 900;
       letter-spacing: 4px;
       text-transform: uppercase;
@@ -268,11 +268,11 @@
     }
     .answer-display {
       margin-top: 40px;
-      font-size: 450px; /* Fallback for browsers without clamp() support */
-      font-size: clamp(300px, 35vw, 600px);
+      font-size: 337px; /* Fallback for browsers without clamp() support - reduced by 25% */
+      font-size: clamp(225px, 26.25vw, 450px); /* Reduced by 25% */
       font-weight: 900;
-      min-height: 500px; /* Fallback for browsers without clamp() support */
-      min-height: clamp(350px, 40vw, 700px);
+      min-height: 375px; /* Fallback for browsers without clamp() support - reduced by 25% */
+      min-height: clamp(262px, 30vw, 525px); /* Reduced by 25% */
       opacity: 0;
       transition: opacity 0.3s ease;
       line-height: 1.2;
@@ -588,14 +588,14 @@
         padding: 0 4px;
       }
       .set h2 {
-        font-size: 180px; /* Fallback */
-        font-size: clamp(120px, 18vw, 250px);
+        font-size: 135px; /* Fallback - reduced by 25% */
+        font-size: clamp(90px, 13.5vw, 187px); /* Reduced by 25% */
       }
       .answer-display {
-        font-size: 280px; /* Fallback */
-        font-size: clamp(180px, 25vw, 400px);
-        min-height: 320px; /* Fallback */
-        min-height: clamp(200px, 30vw, 450px);
+        font-size: 210px; /* Fallback - reduced by 25% */
+        font-size: clamp(135px, 18.75vw, 300px); /* Reduced by 25% */
+        min-height: 240px; /* Fallback - reduced by 25% */
+        min-height: clamp(150px, 22.5vw, 337px); /* Reduced by 25% */
       }
     }
     
@@ -611,14 +611,14 @@
         --section-gap: clamp(20px, 5vw, 50px);
       }
       .set h2 {
-        font-size: 150px; /* Fallback */
-        font-size: clamp(100px, 15vw, 200px);
+        font-size: 112px; /* Fallback - reduced by 25% */
+        font-size: clamp(75px, 11.25vw, 150px); /* Reduced by 25% */
       }
       .answer-display {
-        font-size: 220px; /* Fallback */
-        font-size: clamp(150px, 20vw, 300px);
-        min-height: 250px; /* Fallback */
-        min-height: clamp(170px, 25vw, 350px);
+        font-size: 165px; /* Fallback - reduced by 25% */
+        font-size: clamp(112px, 15vw, 225px); /* Reduced by 25% */
+        min-height: 187px; /* Fallback - reduced by 25% */
+        min-height: clamp(127px, 18.75vw, 262px); /* Reduced by 25% */
       }
     }
     

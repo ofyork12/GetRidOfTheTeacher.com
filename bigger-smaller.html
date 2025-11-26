@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, minimum-scale=0.1, user-scalable=yes">
   <!-- These kill ALL caching forever – latest version every refresh -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -57,8 +57,8 @@
     }
     .set h2 {
       margin: 0;
-      font-size: 300px; /* Fallback for browsers without clamp() support */
-      font-size: clamp(200px, 25vw, 400px);
+      font-size: 225px; /* Fallback for browsers without clamp() support - reduced by 25% */
+      font-size: clamp(150px, 18.75vw, 300px); /* Reduced by 25% */
       font-weight: 900;
       letter-spacing: 4px;
       text-transform: uppercase;
@@ -1003,8 +1003,8 @@
         padding: 0 4px;
       }
       .set h2 {
-        font-size: 180px; /* Fallback */
-        font-size: clamp(120px, 18vw, 250px);
+        font-size: 135px; /* Fallback - reduced by 25% */
+        font-size: clamp(90px, 13.5vw, 187px); /* Reduced by 25% */
       }
     }
     
@@ -1020,8 +1020,8 @@
         --section-gap: clamp(30px, 6vw, 70px);
       }
       .set h2 {
-        font-size: 150px; /* Fallback */
-        font-size: clamp(100px, 15vw, 200px);
+        font-size: 112px; /* Fallback - reduced by 25% */
+        font-size: clamp(75px, 11.25vw, 150px); /* Reduced by 25% */
       }
     }
     
