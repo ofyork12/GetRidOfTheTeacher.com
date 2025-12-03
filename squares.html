@@ -1,4 +1,5 @@
  <!DOCTYPE html>
+<!-- Created by Hughesmath -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -184,10 +185,11 @@
       width: calc(var(--circle-total-large) * 30) !important;
       height: calc(var(--circle-total-large) * 30) !important;
     }
-    /* Grids 34×34 through 50×50 - make them bigger */
+    /* Grids 34×34 through 60×60 - make them bigger */
     .grid-1156, .grid-1225, .grid-1296, .grid-1444, .grid-1521, .grid-1600,
     .grid-1681, .grid-1764, .grid-1849, .grid-1936, .grid-2025, .grid-2116, .grid-2209,
-    .grid-2304, .grid-2401, .grid-2500 {
+    .grid-2304, .grid-2401, .grid-2500, .grid-2601, .grid-2704, .grid-2809, .grid-2916,
+    .grid-3025, .grid-3136, .grid-3249, .grid-3364, .grid-3481, .grid-3600 {
       --circle-size-large: clamp(12px, 7vw, 70px); /* Allow much smaller when zoomed out */
       --circle-total-large: calc(var(--circle-size-large) + var(--circle-border) * 2);
     }
@@ -277,6 +279,16 @@
       grid-template-rows: repeat(50, var(--circle-total)) !important;
       width: calc(var(--circle-total) * 50) !important;
     }
+    .grid-2601 {
+      grid-template-columns: repeat(51, var(--circle-total)) !important;
+      grid-template-rows: repeat(51, var(--circle-total)) !important;
+      width: calc(var(--circle-total) * 51) !important;
+    }
+    .grid-2704 {
+      grid-template-columns: repeat(52, var(--circle-total)) !important;
+      grid-template-rows: repeat(52, var(--circle-total)) !important;
+      width: calc(var(--circle-total) * 52) !important;
+    }
     .circle-676, .circle-729, .circle-784, .circle-841, .circle-900 {
       width: var(--circle-total-large) !important;
       height: var(--circle-total-large) !important;
@@ -302,7 +314,7 @@
     }
     .circle-1369, .circle-1444, .circle-1521, .circle-1600,
     .circle-1681, .circle-1764, .circle-1849, .circle-1936, .circle-2025, .circle-2116, .circle-2209,
-    .circle-2304, .circle-2401, .circle-2500 {
+    .circle-2304, .circle-2401, .circle-2500, .circle-2601, .circle-2704 {
       width: var(--circle-total) !important;
       height: var(--circle-total) !important;
       display: flex;
@@ -339,7 +351,9 @@
     .circle-2209 .circle-number,
     .circle-2304 .circle-number,
     .circle-2401 .circle-number,
-    .circle-2500 .circle-number {
+    .circle-2500 .circle-number,
+    .circle-2601 .circle-number,
+    .circle-2704 .circle-number {
       font-size: clamp(10px, 3vw, 32px); /* Allow smaller when zoomed out */
       font-weight: bold;
     }
@@ -648,7 +662,22 @@ function generateVietnameseNumber(num) {
     }
   }
   
-  // For numbers >= 1000, use simple format
+  // For numbers >= 1000, generate proper Vietnamese words
+  if (num < 10000) {
+    const thousands = Math.floor(num / 1000);
+    const remainder = num % 1000;
+    const thousandsWord = thousands === 1 ? "một nghìn" : (generateVietnameseNumber(thousands) + " nghìn");
+    
+    if (remainder === 0) {
+      return thousandsWord;
+    } else if (remainder < 100) {
+      return thousandsWord + " lẻ " + generateVietnameseNumber(remainder);
+    } else {
+      return thousandsWord + " " + generateVietnameseNumber(remainder);
+    }
+  }
+  
+  // For very large numbers, use simple format but keep as Vietnamese text
   return num.toString();
 }
 
@@ -678,8 +707,8 @@ function generateNumberWords(max) {
 }
 
 // Helper function to generate Vietnamese number words
-// Generate up to 2500 to support all grids including 50×50
-const NUMBER_WORDS = generateNumberWords(2500);
+// Generate up to 2704 to support all grids including 52×52
+const NUMBER_WORDS = generateNumberWords(2704);
 const LANGUAGE_HINTS = {
   en: "English",
   zh: "zh-CN",
@@ -1469,7 +1498,7 @@ function generateSquare(n, label = null) {
   // For 256, 225, 441, 1156, and 1225, make grid position relative so we can absolutely position separated dots relative to it
   // 841 doesn't need relative positioning since dots don't move
   // For squares that may have separated/moving dots, make grid position relative
-  if (square === 256 || square === 225 || square === 441 || square === 1156 || square === 1225 || (square > 1225 && square <= 2500)) {
+  if (square === 256 || square === 225 || square === 441 || square === 1156 || square === 1225 || (square > 1225 && square <= 2704)) {
     grid.style.position = 'relative';
   }
   
@@ -1478,7 +1507,7 @@ function generateSquare(n, label = null) {
   
   // For 35×35 through 50×50, make grid bigger to accommodate numbers
   // 1156 (34×34) and 1225 (35×35) use regular size like square 33
-  if (square > 1156 && square <= 2500) {
+  if (square > 1156 && square <= 2704) {
     grid.classList.add(`grid-${square}`);
   }
   
@@ -1536,8 +1565,8 @@ function generateSquare(n, label = null) {
       
       // Store dot number in data attribute (no visible number displayed)
       circle.dataset.dotNumber = dotNumber.toString();
-    } else if (square > 1225 && square <= 2500) {
-      // For squares 36×36 (1296) through 50×50 (2500), number from top-right corner going left
+    } else if (square > 1225 && square <= 2704) {
+      // For squares 36×36 (1296) through 52×52 (2704), number from top-right corner going left
       // Row 0: right to left (col gridSize-1 = 1, col gridSize-2 = 2, ..., col 0 = gridSize)
       // Row 1+: also right to left (zigzag pattern - every row goes right to left)
       // Add circle class for sizing
@@ -1628,6 +1657,22 @@ function generateSquare(n, label = null) {
   // Then 9 sky blue on third click to fill the 3×3 square (matching 3×3 pattern)
   else if (square === 2209) {
     components = [2000, 200, 9];
+  }
+  // Special: 2304 (48×48) - 2000 orange on first click, 300 yellow on second click, 4 green on third click (skip the 0 component)
+  else if (square === 2304) {
+    components = [2000, 300, 4];
+  }
+  // Special: 2401 (49×49) - 2000 orange on first click, 400 on second click, 1 red on third click (skip the 0 component)
+  else if (square === 2401) {
+    components = [2000, 400, 1];
+  }
+  // Special: 2601 (51×51) - 2000 orange on first click, 600 purple on second click, 1 red on third click
+  else if (square === 2601) {
+    components = [2000, 600, 1];
+  }
+  // Special: 2704 (52×52) - 2000 orange on first click, 700 brown on second click, 4 green on third click (skip the 0 component)
+  else if (square === 2704) {
+    components = [2000, 700, 4];
   }
   // REPLICA: Handle completely independently first
   const isReplica = grid.id === 'square-1296-replica';
@@ -2761,7 +2806,7 @@ function generateSquare(n, label = null) {
             if (isHundredsPlace) {
               color = COLOR_MAP[2] || "orange"; // 2300 starts with 2
             } else if (isOnesPlace) {
-              color = "green"; // 4 green
+              color = "green"; // 4 green - by Ted Hughes
             }
           } else if (sourceSquare === 1) {
             // 49×49 (2401) maps to 1×1 (1): 2400 (hundreds), 0 (tens), 1 red (ones)
@@ -2775,6 +2820,27 @@ function generateSquare(n, label = null) {
             if (isHundredsPlace) {
               color = COLOR_MAP[2] || "orange"; // 2500 starts with 2
             }
+          }
+        }
+        
+        // Special: 2601 (51×51) - 2000 orange, 600 purple, 1 red
+        if (square === 2601) {
+          if (isHundredsPlace) {
+            color = COLOR_MAP[2] || "orange"; // 2000 starts with 2
+          } else if (isTensPlace) {
+            color = COLOR_MAP[6] || "purple"; // 600 starts with 6
+          } else if (isOnesPlace) {
+            color = "red"; // 1 red
+          }
+        }
+        // Special: 2704 (52×52) - 2000 orange, 700 brown, 4 green (maps to 2×2 like 48×48)
+        if (square === 2704) {
+          if (isHundredsPlace) {
+            color = COLOR_MAP[2] || "orange"; // 2000 starts with 2
+          } else if (isTensPlace) {
+            color = COLOR_MAP[7] || "brown"; // 700 starts with 7
+          } else if (isOnesPlace) {
+            color = "green"; // 4 green - same as 48×48
           }
         }
         
@@ -2927,6 +2993,27 @@ function generateSquare(n, label = null) {
             const topRightIdx = 0 * gridSize + 28;
             if (!alreadyFilled.has(topRightIdx)) {
               allIndices.push(topRightIdx);
+            }
+            indicesToFill = allIndices;
+          } else if (square === 2601 && isOnesPlace) {
+            // Special: 2601 (51×51) - explicitly fill the 1 red dot at top-right corner
+            const allIndices = [];
+            const topRightIdx = 0 * gridSize + (gridSize - 1); // Top-right corner
+            if (!alreadyFilled.has(topRightIdx)) {
+              allIndices.push(topRightIdx);
+            }
+            indicesToFill = allIndices;
+          } else if (square === 2704 && isOnesPlace) {
+            // Special: 2704 (52×52) - explicitly fill the 4 green dots in 2×2 square at top-right corner (same as 48×48)
+            const allIndices = [];
+            // 2×2 square in top-right: rows 0-1, cols gridSize-2 to gridSize-1
+            for (let row = 0; row < 2 && row < gridSize; row++) {
+              for (let col = gridSize - 2; col < gridSize; col++) {
+                const idx = row * gridSize + col;
+                if (!alreadyFilled.has(idx)) {
+                  allIndices.push(idx);
+                }
+              }
             }
             indicesToFill = allIndices;
           } else if (square >= 961 && square <= 2500 && n > 30 && isOnesPlace) {
@@ -6024,6 +6111,14 @@ function generateSquare(n, label = null) {
           numberToSpeak = 1220;
         } else if (square === 1225 && clickCount === 4) {
           numberToSpeak = 1225;
+        } else if (square === 2601 && clickCount === 2) {
+          numberToSpeak = 2600; // 2000 + 600
+        } else if (square === 2601 && clickCount === 3) {
+          numberToSpeak = 2601; // 2000 + 600 + 1
+        } else if (square === 2704 && clickCount === 2) {
+          numberToSpeak = 2700; // 2000 + 700
+        } else if (square === 2704 && clickCount === 3) {
+          numberToSpeak = 2704; // 2000 + 700 + 4
         } else {
           const currentTotal = components.slice(0, clickCount).reduce((a, b) => a + b, 0);
           numberToSpeak = currentTotal;
@@ -6752,8 +6847,8 @@ if (moreSquaresContainer) {
   
   moreSquaresContainer.appendChild(second39Section);
   
-  // Generate remaining squares from 40^2 to 50^2 (skip 39 since we just created it manually)
-  for (let n = 40; n <= 50; n++) {
+  // Generate remaining squares from 40^2 to 52^2 (skip 39 since we just created it manually)
+  for (let n = 40; n <= 52; n++) {
     moreSquaresContainer.appendChild(generateSquare(n));
   }
   
