@@ -149,6 +149,19 @@
       margin-top: 0;
       flex-wrap: wrap;
     }
+    
+    /* Adjust input container when number pad is hidden on mobile phones */
+    .mobile-phone .input-container {
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .mobile-phone .question-side,
+    .mobile-phone .answer-side {
+      width: 100%;
+      min-width: auto;
+    }
+    
     .question-side {
       display: flex;
       flex-direction: column;
@@ -338,6 +351,11 @@
       gap: 15px;
       max-width: 500px;
       margin: 0;
+    }
+    
+    /* Hide number pad on mobile phones (they have keyboards) */
+    .mobile-phone .number-pad {
+      display: none;
     }
     /* Level completion modal */
     .level-complete-modal {
@@ -2930,6 +2948,12 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
+    // More specific detection: distinguish between phones and tablets/desktops
+    const isPhone = /iPhone|iPod|Android.*Mobile|BlackBerry|Windows Phone|webOS/i.test(navigator.userAgent) || 
+                    (isMobile && window.innerWidth <= 768);
+    const isTablet = /iPad|Android(?!.*Mobile)|Tablet/i.test(navigator.userAgent) || 
+                     (isMobile && window.innerWidth > 768 && window.innerWidth <= 1024);
+    
     if (isMobile || isTouchDevice) {
       // Add mobile class to body for additional styling if needed
       document.body.classList.add('mobile-device');
@@ -2937,6 +2961,42 @@
       // Disable hover effects on touch devices
       document.body.classList.add('touch-device');
     }
+    
+    // Hide number pad on phones (they have keyboards)
+    // Show number pad on tablets and desktops (they may not have keyboards)
+    if (isPhone) {
+      document.body.classList.add('mobile-phone');
+      const numberPad = document.getElementById('numberPad');
+      if (numberPad) {
+        numberPad.style.display = 'none';
+      }
+    } else {
+      // Desktop or tablet - show the number pad
+      document.body.classList.add('desktop-or-tablet');
+    }
+    
+    // Also check on resize to handle orientation changes
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() {
+        const currentIsPhone = window.innerWidth <= 768 && 
+                               (/iPhone|iPod|Android.*Mobile|BlackBerry|Windows Phone|webOS/i.test(navigator.userAgent) || 
+                                (isMobile && window.innerWidth <= 768));
+        const numberPad = document.getElementById('numberPad');
+        if (numberPad) {
+          if (currentIsPhone) {
+            document.body.classList.add('mobile-phone');
+            document.body.classList.remove('desktop-or-tablet');
+            numberPad.style.display = 'none';
+          } else {
+            document.body.classList.remove('mobile-phone');
+            document.body.classList.add('desktop-or-tablet');
+            numberPad.style.display = 'grid';
+          }
+        }
+      }, 250);
+    });
     
     // Initialize game
     initLevelSelector();
@@ -2950,3 +3010,4 @@
   </script>
 </body>
 </html>
+Yes
