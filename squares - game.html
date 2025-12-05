@@ -8,6 +8,26 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Squares Game - Practice Mode</title>
+  <script>
+    // Redirect mobile phones to mobile version (no number pad)
+    // Keep tablets and desktops on this version (with number pad)
+    (function() {
+      const userAgent = navigator.userAgent;
+      const isPhone = /iPhone|iPod|Android.*Mobile|BlackBerry|Windows Phone|webOS/i.test(userAgent);
+      const isTablet = /iPad|Android(?!.*Mobile)|Tablet/i.test(userAgent);
+      const screenWidth = window.innerWidth;
+      
+      // If it's a phone (not a tablet), redirect to mobile version
+      if (isPhone && !isTablet && screenWidth <= 768) {
+        const currentPath = window.location.pathname;
+        const mobilePath = currentPath.replace('squares - game.html', 'squares-game - mobile.html')
+                                      .replace('squares-game.html', 'squares-game - mobile.html');
+        if (currentPath !== mobilePath && !currentPath.includes('mobile')) {
+          window.location.href = mobilePath;
+        }
+      }
+    })();
+  </script>
   <style>
     /* Hide number pad on mobile by default - will be shown via JavaScript if desktop/tablet */
     @media (max-width: 768px) {
